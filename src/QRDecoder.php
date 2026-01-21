@@ -12,14 +12,21 @@ class QrDecoder
         if (! is_file($imagePath)) {
             throw new RuntimeException('Image file not found.');
         }
-        
-        $base = config('qr-decoder.python_path');
+        putenv('QR_DECODER_PYTHON_PATH=' . config('qr-decoder.python_path'));
+        $packageRoot = realpath(__DIR__ . '/..');
+        $scriptBase  = $packageRoot . '/python';
+        $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 
-        $bin = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'
-            ? $base . '/run_qr_decoder.bat'
-            : $base . '/run_qr_decoder';
-
-        $process = new Process([$bin, $imagePath]);
+        if ($isWindows) {
+            $script = $scriptBase . '/run_qr_decoder.bat';
+            $process = new Process(['cmd', '/c', $script, $imagePath]);
+        } else {
+            $script = $scriptBase . '/run_qr_decoder';
+            $process = new Process([$script, $imagePath]);
+        }
+        $process->setEnv([
+            'QR_DECODER_PYTHON_PATH' => config('qr-decoder.python_path'),
+        ]);
         $process->setTimeout(config('qr-decoder.timeout', 10));
         $process->run();
 

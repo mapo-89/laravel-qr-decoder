@@ -89,7 +89,7 @@ It exposes a single service (`QrDecoder`) that can be used inside your applicati
 1. **Decode an already uploaded file on button click:**
 
 ```php
-use YourName\QrDecoder\QrDecoder;
+use Mapo89\QrDecoder\QrDecoder;
 
 $result = app(QrDecoder::class)->decode(
     storage_path('app/qr_uploaded_file.png')

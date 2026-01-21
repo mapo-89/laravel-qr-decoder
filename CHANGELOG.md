@@ -2,6 +2,21 @@
 
 All notable changes to `laravel-qr-decoder` will be documented in this file
 
+## 1.1.1 - 2026-01-21
+
+### 🐛 Fixed
+- Fixed Windows issue where `putenv()` was not inherited by the Python process
+- Environment variables are now passed explicitly via `Symfony\Component\Process\Process::setEnv()`
+- Fixed path resolution issues for locally installed (path repository) packages
+
+### 🧱 Changed
+- Wrapper scripts now rely on injected environment variables instead of hardcoded paths
+
+### 🔒 Stability
+- Improved reliability across Windows, Linux, CI, and local development environments
+
+---
+
 ## 1.1.0 - 2026-01-21
 
 ### Added

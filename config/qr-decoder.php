@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'python_path' => base_path('vendor/mapo-89/laravel-qr-decoder/python'),
+    'python_path' => base_path('python/qr-decoder'),
     'timeout' => 10,
 ];

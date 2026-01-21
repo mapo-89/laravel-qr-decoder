@@ -20,7 +20,7 @@ class QrDecoderInstall extends Command
             return 0;
         }
 
-        $pythonCmd = env('QR_DECODER_PYTHON_BIN', 'python');
+        $pythonCmd = 'python';
         $requirements = escapeshellarg( 'vendor/mapo-89/laravel-qr-decoder/python/requirements.txt');
 
         $this->info("Creating Python virtual environment at $venvPath...");
