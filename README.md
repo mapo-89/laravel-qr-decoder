@@ -58,31 +58,26 @@ php artisan vendor:publish --tag=config
 
 ---
 
-## Python setup
+### Configure Python path
 
-Navigate to the package Python directory:
-
-```bash
-cd python/qr-decoder
-```
-
-Create venv:
+Edit `config/qr-decoder.php`:
 
 ```bash
-python -m venv venv
+return [
+    'python_path' => base_path('python/qr-decoder'),
+    'timeout' => 10,
+];
 ```
 
-Activate & install deps:
+### Run the installer (recommended)
 
 ```bash
-# Linux / macOS
-source venv/bin/activate
-
-# Windows
-venv\Scripts\activate
-
-pip install -r requirements.txt
+php artisan qr-decoder:install
 ```
+This command will:
+- Create a Python virtual environment in the configured path
+- Install all required Python dependencies
+- Work on Windows and Linux
 
 ## Usage
 

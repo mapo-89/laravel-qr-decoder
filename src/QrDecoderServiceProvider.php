@@ -3,6 +3,7 @@
 namespace Mapo89\QrDecoder;
 
 use Illuminate\Support\ServiceProvider;
+use Mapo89\QrDecoder\Console\QrDecoderInstall;
 
 class QrDecoderServiceProvider extends ServiceProvider
 {
@@ -40,7 +41,9 @@ class QrDecoderServiceProvider extends ServiceProvider
             ], 'lang');*/
 
             // Registering package commands.
-            // $this->commands([]);
+             $this->commands([
+                QrDecoderInstall::class,
+            ]);
         }
     }
 

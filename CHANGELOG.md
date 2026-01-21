@@ -2,6 +2,21 @@
 
 All notable changes to `laravel-qr-decoder` will be documented in this file
 
+## 1.1.0 - 2026-01-21
+
+### Added
+- Artisan command `qr-decoder:install` to set up the Python virtual environment
+- Python venv is now created using Laravel config (`qr-decoder.python_path`)
+- Fully update-safe setup (no venv inside vendor/)
+- Windows and Linux support for automated setup
+- Improved documentation for installation and usage
+
+### Changed
+- Removed manual venv setup instructions from README
+- Recommended Artisan-based installation
+
+---
+
 ## 1.0.0 - 2026-01-21
 
 ### Added
