@@ -22,9 +22,9 @@ This package wraps a Python decoder inside a virtual environment and exposes a c
 
 ## Requirements
 
-* PHP >= 8.1
-* Laravel >= 9
-* Python >= 3.9
+* PHP >= 8.2
+* Laravel >= 11
+* Python >= 3.13
 
 ---
 
@@ -63,7 +63,7 @@ php artisan vendor:publish --tag=config
 Navigate to the package Python directory:
 
 ```bash
-cd packages/mapo-89/qr-decoder/python
+cd python/qr-decoder
 ```
 
 Create venv:
@@ -145,7 +145,7 @@ public function decode(QrDecoder $decoder)
 
 ```php
 return [
-    'python_path' => base_path('vendor/mapo-89/laravel-qr-decoder/python'),
+    'python_path' => base_path('python/qr-decoder'),
     'timeout' => 10,
 ];
 ```
