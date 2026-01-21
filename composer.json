@@ -1,0 +1,56 @@
+{
+    "name": "mapo-89/laravel-qr-decoder",
+    "description": "A cross‑platform Laravel package for decoding QR codes from PNG images using Python",
+    "keywords": [
+        "mapo-89",
+        "laravel-qr-decoder"
+    ],
+    "homepage": "https://github.com/mapo-89/laravel-qr-decoder",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Manuel Postler",
+            "email": "info@postler.de",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "symfony/process": "^7.4"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^9.0|^10.0|^11.0",
+        "pestphp/pest": "^2.0|^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mapo89\\QrDecoder\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Mapo89\\QrDecoder\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Mapo89\\QrDecoder\\QrDecoderServiceProvider"
+            ],
+            "aliases": {
+                "QrDecoder": "Mapo89\\QrDecoder\\QrDecoderFacade"
+            }
+        }
+    }
+}
