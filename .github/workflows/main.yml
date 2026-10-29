@@ -55,9 +55,16 @@ jobs:
             # and advisory blocking for all other packages and Laravel versions enabled.
             - name: Allow Laravel 11 compatibility dependencies
               if: matrix.framework.laravel == '11.*'
-              run: >-
-                  composer config --json policy.advisories.ignore
-                  '{"laravel/framework": {"constraint": "11.*", "on-audit": false, "reason": "CI-only Laravel 11 compatibility test"}}'
+              shell: php {0}
+              run: |
+                  <?php
+                  $composer = json_decode(file_get_contents('composer.json'), true, 512, JSON_THROW_ON_ERROR);
+                  $composer['config']['policy']['advisories']['ignore']['laravel/framework'] = [
+                      'constraint' => '11.*',
+                      'on-audit' => false,
+                      'reason' => 'CI-only Laravel 11 compatibility test',
+                  ];
+                  file_put_contents('composer.json', json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL);
 
             - name: Install dependencies
               run: |
