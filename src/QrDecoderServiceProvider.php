@@ -1,62 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Mapo89\QrDecoder;
 
-use Illuminate\Support\ServiceProvider;
 use Mapo89\QrDecoder\Console\QrDecoderInstall;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class QrDecoderServiceProvider extends ServiceProvider
+class QrDecoderServiceProvider extends PackageServiceProvider
 {
-    /**
-     * Bootstrap the application services.
-     */
-    public function boot()
+    public function configurePackage(Package $package): void
     {
-        /*
-         * Optional methods to load your package assets
-         */
-        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'qr-decoder');
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'qr-decoder');
-        // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // $this->loadRoutesFrom(__DIR__.'/routes.php');
-
-        if ($this->app->runningInConsole()) {
-            $this->publishes([
-                __DIR__.'/../config/qr-decoder.php' => config_path('qr-decoder.php'),
-            ], 'config');
-
-            // Publishing the views.
-            /*$this->publishes([
-                __DIR__.'/../resources/views' => resource_path('views/vendor/qr-decoder'),
-            ], 'views');*/
-
-            // Publishing assets.
-            /*$this->publishes([
-                __DIR__.'/../resources/assets' => public_path('vendor/laravel-qr-decoder'),
-            ], 'assets');*/
-
-            // Publishing the translation files.
-            /*$this->publishes([
-                __DIR__.'/../resources/lang' => resource_path('lang/vendor/laravel-qr-decoder'),
-            ], 'lang');*/
-
-            // Registering package commands.
-            $this->commands([
-                QrDecoderInstall::class,
-            ]);
-        }
+        $package
+            ->name('laravel-qr-decoder')
+            ->hasConfigFile()
+            ->hasCommand(QrDecoderInstall::class);
     }
 
-    /**
-     * Register the application services.
-     */
-    public function register()
+    public function packageRegistered(): void
     {
-        // Automatically apply the package configuration
-        $this->mergeConfigFrom(__DIR__.'/../config/qr-decoder.php', 'qr-decoder');
-
-        // Register the main class to use with the facade
         $this->app->singleton(QrDecoder::class);
         $this->app->alias(QrDecoder::class, 'qr-decoder');
+    }
+
+    public function packageBooted(): void
+    {
+        if ($this->app->runningInConsole()) {
+            // Preserve the original publish tag for existing applications.
+            $this->publishes(static::pathsToPublish(static::class, 'qr-decoder-config'), 'config');
+        }
     }
 }
