@@ -4,6 +4,27 @@ All notable changes to `laravel-qr-decoder` will be documented in this file
 
 ## Unreleased
 
+## v1.2.0 - 2026-10-29
+
+Changes since `v1.1.1`.
+
+### ✨ Features
+- Support Laravel 13 and reliable QR image decoding
+
+### 🐛 Fixes
+- Restore CI compatibility tests for Laravel 11 through 13
+- Configure CI compatibility policy portably on Windows
+- Fetch missing CI comparison commits after force pushes
+
+### ♻️ Refactoring
+- Register QR Decoder with Spatie Package Tools
+
+### 📝 Documentation
+- Refresh package setup, badges and support links
+
+### 🔧 Chores
+- Standardize release and changelog automation with Node.js
+
 ## 1.1.1 - 2026-01-21
 
 ### 🐛 Fixed
