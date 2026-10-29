@@ -2,6 +2,8 @@
 
 All notable changes to `laravel-qr-decoder` will be documented in this file
 
+## Unreleased
+
 ## 1.1.1 - 2026-01-21
 
 ### 🐛 Fixed

@@ -52,4 +52,85 @@ If the project maintainer has any additional requirements, you will find them li
 
 - **Send coherent history** - Make sure each individual commit in your pull request is meaningful. If you had to make multiple intermediate commits while developing, please [squash them](https://www.git-scm.com/book/en/v2/Git-Tools-Rewriting-History#Changing-Multiple-Commit-Messages) before submitting.
 
+## Commit messages and release notes
+
+Use the same commit format as `core-panel-monorepo`:
+
+```text
+<emoji> <Type>: <concise imperative summary>
+```
+
+Write summaries in English so they can be used directly as release-note bullets.
+Choose the type by the primary intent of the entire change. For example, the
+Package Tools migration is `♻️ Refactoring: Register the package with Spatie Package Tools`.
+Reserve `✨ Feature:` for an independently meaningful new capability.
+
+| Prefix | Release-note section |
+| --- | --- |
+| `✨ Feature:` | Features |
+| `🐛 Fix:`, `🚑 Hotfix:` | Fixes |
+| `♻️ Refactoring:` | Refactoring |
+| `🎨 Styling:`, `💄 UI:` | UI & Styling |
+| `📝 Docs:` | Documentation |
+| `🔒 Security:` | Security |
+| `⚡ Performance:` | Performance |
+| `⚠️ Deprecated:` | Deprecated |
+| `🔥 Remove:` | Removed |
+| `🔧 Chore:`, `📦 Deps:`, `⬆️ Deps:`, `⬇️ Deps:`, `🧪 Test:` | Chores |
+| `🚀 Deploy:` | Deployment |
+
+CI checks new commits in each push or pull request. Historical commits are not
+rewritten. For compatibility with older history, the notes generator also
+recognizes Core-Panel's plain prefixes such as `Feature:`, `Fix:`, and `Refactor:`.
+Unrecognized messages appear under **Other Changes** rather than being omitted.
+Merge subjects, generated `⚙️ Chore: set version to ...` messages, and release
+trigger messages are excluded from the notes. Only nonempty sections are shown,
+in the table's order; changes within a section follow commit order.
+
+## Creating a release
+
+Normal feature, fix, and documentation commits do not create releases. Release
+bumps are explicit, just as in Core-Panel; they are not inferred from commit types.
+Use one of these release commit subjects only when a release is intended:
+
+```text
+🚀 Release:
+🚀 Release: patch
+🚀 Release: minor
+🚀 Release: major
+🚀 Release: 1.2.0
+```
+
+A bare `🚀 Release:` means `patch`; explicit versions may optionally start with `v`.
+After that commit is pushed to `main` and the complete `run-tests` workflow passes,
+the Release workflow creates the version tag and GitHub release with grouped notes.
+Alternatively, manually dispatch **Release** on `main`, selecting a bump or explicit
+version. Manual releases also require successful push CI for that exact commit.
+
+Versions use the existing `vX.Y.Z` tag convention. The generator accepts historical
+tags with or without `v`, finds the previous stable version in the released commit's
+history, and analyzes only commits since that tag. Existing tags are never moved;
+retries leave existing releases unchanged. Composer gets the version from Git tags,
+so no generated version commit or `composer.json` version field is needed.
+
+Preview notes locally without publishing anything:
+
+```bash
+node .github/scripts/releases.mjs notes --version v1.2.0
+```
+
+Test the release tooling with:
+
+```bash
+node --test .release/release.test.mjs .release/changelog.test.mjs
+```
+
+### Changelog
+
+After a successful explicit release, the workflow records the same published
+notes in `CHANGELOG.md` and fast-forward-pushes a documentation commit. The shared
+publisher is idempotent and preserves old versions and newer Unreleased notes.
+The release tag continues to identify the original tested code commit. See
+[the shared changelog guide](.release/README.md#changelogmd).
+
 **Happy coding**!

@@ -7,6 +7,29 @@ on:
         branches: [main]
 
 jobs:
+    release-tooling:
+        name: Commit conventions and release tooling
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '24'
+            - name: Check new commit messages
+              env:
+                  BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+                  HEAD_SHA: ${{ github.sha }}
+              run: node .github/scripts/releases.mjs check-commits --base "$BASE_SHA" --ref "$HEAD_SHA"
+            - name: Test release tooling
+              run: |
+                  node --test .release/release.test.mjs .release/changelog.test.mjs
+
     test:
         runs-on: ${{ matrix.os }}
         strategy:
