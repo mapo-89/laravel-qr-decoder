@@ -14,7 +14,7 @@
 
 A cross‑platform Laravel package for decoding QR codes from PNG, JPEG and WebP images using Python (`zxing-cpp`).
 
-This package wraps a Python decoder inside a virtual environment and exposes a clean Laravel API. It works on **Windows and Linux** using OS‑specific wrapper scripts.
+This package wraps a Python decoder inside a virtual environment and exposes a clean Laravel API. It works on **Windows and Linux**. Laravel launches the virtual environment’s Python interpreter directly; optional wrapper scripts are available for command-line use.
 
 ---
 
@@ -72,12 +72,26 @@ The legacy `--tag=config` command remains supported.
 
 Edit `config/qr-decoder.php`:
 
-```bash
+```php
 return [
-    'python_path' => base_path('python/qr-decoder'),
-    'timeout' => 10,
+    'python_path' => env('QR_DECODER_PYTHON_PATH', base_path('python/qr-decoder')),
+    'python_binary' => env('QR_DECODER_PYTHON_BINARY', PHP_OS_FAMILY === 'Windows' ? 'python' : 'python3'),
+    'timeout' => (int) env('QR_DECODER_TIMEOUT', 10),
+    'install_timeout' => (int) env('QR_DECODER_INSTALL_TIMEOUT', 300),
 ];
 ```
+
+The environment variables are optional:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `QR_DECODER_PYTHON_PATH` | `<application>/python/qr-decoder` | Parent directory containing `venv`; an existing virtual environment directory is also accepted. |
+| `QR_DECODER_PYTHON_BINARY` | `python3` on Linux, `python` on Windows | Python >= 3.11 executable used to create the environment. Use an executable path without command-line arguments. |
+| `QR_DECODER_TIMEOUT` | `10` | Timeout in seconds for one decode operation. |
+| `QR_DECODER_INSTALL_TIMEOUT` | `300` | Timeout in seconds for each installation step. |
+
+After changing environment variables in a deployment using Laravel's configuration
+cache, rebuild it with `php artisan config:cache`.
 
 ### Run the installer (recommended)
 
@@ -121,7 +135,7 @@ public function uploadAndDecode(Request $request, QrDecoder $decoder)
 
     try {
         $result = $decoder->decode($fullPath);
-    } catch (\Throwable $e) {
+    } catch (\Mapo89\QrDecoder\QrDecoderException $e) {
         $result = null;
         // Handle error if needed
     } finally {
@@ -137,6 +151,35 @@ public function uploadAndDecode(Request $request, QrDecoder $decoder)
 > Note: The controller should live in your application, not in this package.
 > If you need a UI, build it in your application or in a separate package that depends on this one.
 
+### Results and errors
+
+`decode()` returns the QR text exactly as decoded, including leading and trailing
+spaces, tabs and newlines. An image without a QR code returns an empty string.
+Images with different QR payloads are rejected, including payloads that differ
+only in whitespace. Repeated copies of the same payload are accepted.
+
+PNG transparency is composed onto a white background. Images are limited to
+16,777,216 pixels and resized to at most 2048 × 2048 before detection.
+
+Failures throw `Mapo89\QrDecoder\QrDecoderException`, which extends
+`RuntimeException`. Its public `reason` property identifies the cause:
+
+| Reason | Meaning |
+| --- | --- |
+| `unreadable_image` | The image path is missing or unreadable. |
+| `missing_environment` | Run `php artisan qr-decoder:install`. |
+| `invalid_configuration` | The configured Python path is empty or invalid. |
+| `timeout` | Decoding exceeded the configured timeout. |
+| `invalid_image` | The image is invalid or unsupported. |
+| `image_too_large` | The image exceeds the pixel limit. |
+| `ambiguous_image` | More than one distinct QR payload was detected. |
+| `invalid_response` | Python returned an unexpected response. |
+| `process_failed` | The process could not start or another decoder error occurred. |
+
+Exception messages contain fixed descriptions, without decoded content or raw
+process output. The installer reports environment creation, dependency installation
+and timeout failures separately and returns a nonzero exit code.
+
 ### Dependency Injection
 
 ```php
@@ -150,8 +193,10 @@ public function decode(QrDecoder $decoder)
 
 ```php
 return [
-    'python_path' => base_path('python/qr-decoder'),
-    'timeout' => 10,
+    'python_path' => env('QR_DECODER_PYTHON_PATH', base_path('python/qr-decoder')),
+    'python_binary' => env('QR_DECODER_PYTHON_BINARY', PHP_OS_FAMILY === 'Windows' ? 'python' : 'python3'),
+    'timeout' => (int) env('QR_DECODER_TIMEOUT', 10),
+    'install_timeout' => (int) env('QR_DECODER_INSTALL_TIMEOUT', 300),
 ];
 ```
 
@@ -182,30 +227,57 @@ laravel-qr-decoder/
 
 ### Testing
 
-Install the development dependencies, then run the decoder and Laravel integration tests:
+Install the development dependencies:
 
 ```bash
 composer install
-composer test
 ```
 
-Test the Python decoder with real PNG, JPEG and WebP QR images in a virtual environment:
+Create the Python environment so both PHP integration tests and Python tests can decode real images:
 
 ```bash
 python3 -m venv python/venv
 python/venv/bin/python -m pip install -r python/requirements.txt
 python/venv/bin/python -m unittest discover -s python -p 'test_*.py' -v
+composer test
 ```
 
 On Windows, use `python` to create the environment and
 `python/venv/Scripts/python.exe` for the remaining commands. CI runs these tests
 on Linux and Windows with Python 3.11 and 3.14. PHP tests use PHPUnit 11, 12 or 13
-as supported by the selected PHP and Laravel versions.
+as supported by the selected PHP and Laravel versions. The PHP CI jobs also install
+Python 3.11 and exercise Laravel → Python → QR decoding and both wrapper path
+layouts. Locally, real-image PHP tests skip when no virtual environment is present;
+set `QR_DECODER_TEST_VENV` to an existing environment directory to use a different
+location. A present but broken environment fails the tests.
 
 The service provider uses [Spatie Laravel Package Tools](https://github.com/spatie/laravel-package-tools)
 to register configuration and the `qr-decoder:install` command. Laravel discovers the
 provider and facade automatically. The integration tests cover configuration merging,
 both config publish tags, command registration, and the shared decoder instance.
+
+### Optional command-line wrappers
+
+Laravel calls Python directly. For standalone use, set `QR_DECODER_PYTHON_PATH`
+to the same parent directory or existing virtual environment directory used by
+Laravel, then run:
+
+```bash
+bash python/run_qr_decoder /path/to/image.png
+```
+
+On Windows:
+
+```bat
+python\run_qr_decoder.bat "C:\path to\image.png"
+```
+
+Without the environment variable, both wrappers look for `python/venv` next to
+the decoder script. They print UTF-8 text followed by a newline. Add `--json`
+before the image path for structured output: `{"text": "..."}` on success or
+`{"error": "invalid_image"}` on failure. An empty image result is `{"text": ""}`.
+The exit code is zero on success and nonzero on failure. PHP uses this JSON mode
+to preserve payload boundaries.
 
 ### Changelog
 
