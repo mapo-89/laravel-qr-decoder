@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util'
 import { config, git, isMain, tryGit, versionTuple } from './release.mjs'
 
 export function unreleasedSection(document) {
-    const match = /^##[ \t]+(?:\[?Unreleased\]?|\[?Unveröffentlicht\]?)[ \t]*$/mi.exec(document)
+    const match = /^##[ \t]+(?:\[?Unreleased\]?|\[?Unveröffentlicht\]?)[ \t]*\r?$/mi.exec(document)
     if (!match) return null
     const following = /^##[ \t]+/m.exec(document.slice(match.index + match[0].length))
     const end = following ? match.index + match[0].length + following.index : document.length
@@ -13,7 +13,7 @@ export function unreleasedSection(document) {
 export function updateChangelog(version, notes, releaseDate = null, releaseRef = null) {
     const number = versionTuple(version).join('.')
     const original = existsSync('CHANGELOG.md') ? readFileSync('CHANGELOG.md', 'utf8')
-        : config().language === 'de' ? '# Änderungsprotokoll\n\n## Unveröffentlicht\n\n' : '# Changelog\n\n## Unreleased\n\n'
+        : config().language === 'de' ? '# Änderungsprotokoll\n\n' : '# Changelog\n\n'
     for (const header of original.matchAll(/^##[ \t]+\[?(v?[0-9]+\.[0-9]+\.[0-9]+)\]?(?=[ \t]|$)/gm)) {
         if (versionTuple(header[1]).join('.') === number) return false
     }
@@ -21,6 +21,7 @@ export function updateChangelog(version, notes, releaseDate = null, releaseRef =
     if (!/^\d{4}-\d{2}-\d{2}$/.test(releaseDate) || !Number.isFinite(Date.parse(releaseDate)) || new Date(releaseDate).toISOString().slice(0, 10) !== releaseDate) throw new Error('Invalid release date')
     let body = notes.trim()
     if (body.startsWith('# Release-Notes ')) body = body.includes('\n') ? body.slice(body.indexOf('\n') + 1).trimStart() : ''
+    body = body.replace(/^(?:Changes since|Änderungen seit)[ \t]+`[^`\r\n]+`\.[ \t]*(?:\r?\n|$)/gm, '').trim()
     if (!body) throw new Error('Cannot update CHANGELOG.md with empty release notes.')
     const entryVersion = config().tag_prefix == null ? version : config().tag_prefix + number
     const entry = `## ${entryVersion} - ${releaseDate}\n\n${body}\n\n`
@@ -30,10 +31,13 @@ export function updateChangelog(version, notes, releaseDate = null, releaseRef =
         const snapshot = tryGit('show', `${releaseRef}:CHANGELOG.md`)
         const releasedPending = snapshot.status === 0 ? unreleasedSection(snapshot.stdout) : null
         if (releasedPending?.text === pending.text) {
-            const heading = pending.text.split('\n', 1)[0] + '\n\n'
-            document = document.slice(0, pending.start) + heading + document.slice(pending.end)
+            document = document.slice(0, pending.start) + document.slice(pending.end)
             pending = unreleasedSection(document)
         }
+    }
+    if (pending && !pending.text.replace(/^[^\n]*(?:\n|$)/, '').trim()) {
+        document = document.slice(0, pending.start) + document.slice(pending.end)
+        pending = unreleasedSection(document)
     }
     const position = pending?.end ?? /^##[ \t]+/m.exec(document)?.index ?? document.length
     let prefix = document.slice(0, position)

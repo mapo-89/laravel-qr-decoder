@@ -22,7 +22,8 @@ whole change; do not call maintenance or refactoring a feature.
 Historical aliases remain readable. Other historical messages are retained under
 Other Changes. Merge subjects and generated version/release commits are excluded.
 Only nonempty sections are emitted, in the order above and with chronological
-bullets. German repositories use translated headings. Summaries are not rewritten
+bullets. Release notes omit the "Changes since ..." / "Änderungen seit ..." line.
+German repositories use translated headings. Summaries are not rewritten
 or automatically translated.
 
 ## Explicit releases
@@ -85,10 +86,12 @@ to the release branch. This documentation commit is excluded from future notes
 and does not trigger another release. The file is created on the first release
 when absent; historical version entries and immutable tags are preserved.
 
-`.release/changelog.mjs` updates only the local file. It clears an Unreleased or
-Unveröffentlicht section only when it still matches the snapshot in the release
-tag. Any newer notes are retained. `.release/publish-changelog.mjs` fetches the
-latest branch and retries rejected pushes by recomputing the update, without
+`.release/changelog.mjs` updates only the local file. New files have no Unreleased
+or Unveröffentlicht heading. Empty legacy headings are removed; a nonempty legacy
+section is removed only when it still matches the snapshot in the release tag.
+Any newer notes are retained. Legacy "Changes since ..." / "Änderungen seit ..."
+lines are omitted when importing release notes. `.release/publish-changelog.mjs`
+fetches the latest branch and retries rejected pushes by recomputing the update, without
 force pushes or duplicate version entries.
 
 The release workflow calls the publisher directly so GitHub service-token event

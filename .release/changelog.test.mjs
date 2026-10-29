@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import { fixture } from './fixture.mjs'
@@ -20,7 +20,8 @@ test('generated notes become a version entry while history remains untouched', c
     const ref = snapshot(f, '# Changelog\n\n## Unreleased\n\n- Pending refactoring\n\n' + history)
     assert.equal(updateChangelog('v1.1.0', notes, '2026-10-29', ref), true)
     const document = readFileSync('CHANGELOG.md', 'utf8')
-    assert.ok(document.includes('## Unreleased\n\n## v1.1.0 - 2026-10-29'))
+    assert.ok(document.startsWith('# Changelog\n\n## v1.1.0 - 2026-10-29'))
+    assert.ok(!document.includes('Unreleased')); assert.ok(!document.includes('Changes since'))
     assert.ok(document.includes('### ♻️ Refactoring\n- Use Package Tools')); assert.ok(!document.includes('Pending refactoring'))
     assert.ok(document.endsWith(history)); assert.ok(!document.includes('# Release-Notes'))
 })
@@ -32,6 +33,47 @@ test('newer Unreleased additions are preserved', context => {
     updateChangelog('1.1.0', '### 🐛 Fixes\n- Released fix\n', '2026-10-29', ref)
     const document = readFileSync('CHANGELOG.md', 'utf8')
     assert.ok(document.includes('- Newer uncommitted work')); assert.ok(document.includes('## 1.1.0 - 2026-10-29'))
+})
+
+test('empty legacy Unreleased headings are removed without a release snapshot', context => {
+    fixture(context, { initial: false })
+    for (const heading of ['Unreleased', '[Unreleased]', 'Unveröffentlicht', '[Unveröffentlicht]']) {
+        const history = '## 1.0.0\n\n- Original release\n'
+        writeFileSync('CHANGELOG.md', '# Changelog\n\n## ' + heading + '\n\n' + history)
+        updateChangelog('1.1.0', '### Fixes\n- Correct timeout', '2026-10-29')
+        const document = readFileSync('CHANGELOG.md', 'utf8')
+        assert.ok(document.startsWith('# Changelog\n\n## 1.1.0 - 2026-10-29'))
+        assert.ok(document.endsWith(history))
+    }
+})
+
+test('new changelogs contain only the title and released version entries', context => {
+    const f = fixture(context, { initial: false })
+    for (const language of ['en', 'de']) {
+        f.configure({ language }); rmSync('CHANGELOG.md', { force: true })
+        updateChangelog('1.0.0', '### Features\n- Initial package', '2026-10-29')
+        const document = readFileSync('CHANGELOG.md', 'utf8')
+        assert.ok(document.startsWith((language === 'de' ? '# Änderungsprotokoll' : '# Changelog') + '\n\n## 1.0.0'))
+        assert.ok(!document.includes('Unreleased')); assert.ok(!document.includes('Unveröffentlicht'))
+    }
+})
+
+test('empty headings at end of file and Windows line endings are handled', context => {
+    fixture(context, { initial: false })
+    for (const ending of ['', '\r\n\r\n']) {
+        writeFileSync('CHANGELOG.md', '# Changelog\n\n## Unreleased' + ending)
+        updateChangelog('1.0.0', '### Features\n- Initial package', '2026-10-29')
+        assert.ok(!readFileSync('CHANGELOG.md', 'utf8').includes('Unreleased'))
+    }
+})
+
+test('legacy comparison lines are omitted when importing published release notes', context => {
+    fixture(context, { initial: false })
+    for (const contextLine of ['Changes since `v1.0.0`.', 'Änderungen seit `1.0.0`.']) {
+        writeFileSync('CHANGELOG.md', '# Changelog\n')
+        updateChangelog('1.1.0', '# Release-Notes 1.1.0\n\n' + contextLine + '\n\n### Fixes\n- Correct timeout', '2026-10-29')
+        assert.equal(readFileSync('CHANGELOG.md', 'utf8'), '# Changelog\n\n## 1.1.0 - 2026-10-29\n\n### Fixes\n- Correct timeout\n\n')
+    }
 })
 
 test('existing manual or published versions remain immutable', context => {
@@ -89,6 +131,7 @@ test('version headings respect the configured prefix for either caller', context
 
 test('invalid versions, dates and empty notes cannot overwrite the file', context => {
     fixture(context, { initial: false }); writeFileSync('CHANGELOG.md', '# Existing history\n')
-    for (const [version, body, date] of [['invalid', 'Some notes', null], ['1.0.0', '# Release-Notes 1.0.0', null], ['1.0.0', 'Notes', '2026-02-30']]) assert.throws(() => updateChangelog(version, body, date))
+    for (const [version, body, date] of [['invalid', 'Some notes', null], ['1.0.0', '# Release-Notes 1.0.0', null],
+        ['1.0.0', '# Release-Notes 1.0.0\n\nChanges since `v0.9.0`.\n', null], ['1.0.0', 'Notes', '2026-02-30']]) assert.throws(() => updateChangelog(version, body, date))
     assert.equal(readFileSync('CHANGELOG.md', 'utf8'), '# Existing history\n')
 })

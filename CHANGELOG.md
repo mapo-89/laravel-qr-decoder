@@ -2,18 +2,12 @@
 
 All notable changes to `laravel-qr-decoder` will be documented in this file
 
-## Unreleased
-
 ## v1.2.1 - 2026-10-29
-
-Changes since `v1.2.0`.
 
 ### 🔧 Chores
 - Upgrade Python imaging dependencies and support PHPUnit 13
 
 ## v1.2.0 - 2026-10-29
-
-Changes since `v1.1.1`.
 
 ### ✨ Features
 - Support Laravel 13 and reliable QR image decoding

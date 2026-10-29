@@ -51,9 +51,8 @@ export function renderNotes(version, subjects, previous = null, options = {}) {
         group.items.push(prefix ? subject.slice(prefix.length).trim() : subject)
     }
     const lines = [`# Release-Notes ${version}`, '']
-    if (!options.omitContext) {
-        lines.push(previous ? (german ? `Änderungen seit \`${previous}\`.` : `Changes since \`${previous}\`.`)
-            : (german ? 'Erste Veröffentlichung.' : 'Initial release.'), '')
+    if (!previous && !options.omitContext) {
+        lines.push(german ? 'Erste Veröffentlichung.' : 'Initial release.', '')
     }
     for (const group of groups) {
         if (group.items.length) lines.push(`### ${group.icon} ${german ? group.de : group.name}`, ...group.items.map(item => '- ' + item), '')

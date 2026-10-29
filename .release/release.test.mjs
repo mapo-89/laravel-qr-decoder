@@ -3,7 +3,7 @@ import test from 'node:test'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { fixture } from './fixture.mjs'
-import { checkCommits, compareVersions, planRelease, releaseNotes, validSubject } from './release.mjs'
+import { checkCommits, compareVersions, planRelease, releaseNotes, renderNotes, validSubject } from './release.mjs'
 const script = fileURLToPath(new URL('./release.mjs', import.meta.url))
 
 test('Core-Panel category order, historical fallback, and automation filtering', context => {
@@ -25,13 +25,25 @@ test('notes use the previous ancestor tag and exclude future tags', context => {
     const f = fixture(context); f.git('tag', '1.0.0'); f.commit('🐛 Fix: First fix'); f.git('tag', 'v1.0.1')
     const ref = f.git('rev-parse', 'HEAD'); f.commit('🐛 Fix: Future fix'); f.git('tag', 'v1.0.2')
     const notes = releaseNotes('v1.0.1', ref)
-    assert.ok(notes.includes('Changes since `1.0.0`.')); assert.ok(notes.includes('First fix')); assert.ok(!notes.includes('Future fix'))
+    assert.ok(!notes.includes('Initial decoder')); assert.ok(notes.includes('First fix')); assert.ok(!notes.includes('Future fix'))
 })
 
 test('unrelated tags do not set the release base', context => {
     const f = fixture(context); f.git('tag', 'v1.0.0'); f.git('checkout', '-q', '--orphan', 'unrelated')
     f.commit('✨ Feature: Unrelated project'); f.git('tag', 'v9.0.0'); f.git('checkout', '-q', 'main'); f.commit('🐛 Fix: Real fix')
-    assert.ok(releaseNotes('v1.0.1').includes('Changes since `v1.0.0`.')); assert.equal(planRelease('manual').tag, 'v1.0.1')
+    const notes = releaseNotes('v1.0.1')
+    assert.ok(notes.includes('Real fix')); assert.ok(!notes.includes('Initial decoder')); assert.equal(planRelease('manual').tag, 'v1.0.1')
+})
+
+test('release notes omit previous-version context in both languages', context => {
+    fixture(context)
+    for (const language of ['en', 'de']) {
+        const notes = renderNotes('1.1.0', ['🐛 Fix: Correct timeout'], 'v1.0.0', { language })
+        assert.ok(notes.startsWith('# Release-Notes 1.1.0\n\n### '))
+        assert.ok(notes.includes('- Correct timeout'))
+        assert.ok(!notes.includes('Changes since')); assert.ok(!notes.includes('Änderungen seit'))
+        assert.ok(!notes.includes('v1.0.0')); assert.ok(!notes.includes('Unreleased'))
+    }
 })
 
 test('initial notes and empty releases', context => {
