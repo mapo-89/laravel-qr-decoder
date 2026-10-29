@@ -23,8 +23,7 @@
     },
     "require-dev": {
         "orchestra/testbench": "^9.0|^10.0|^11.0",
-        "phpunit/phpunit": "^9.0|^10.0|^11.0|^12.0",
-        "pestphp/pest": "^2.0|^3.0|^4.0"
+        "phpunit/phpunit": "^11.0|^12.0|^13.0"
     },
     "autoload": {
         "psr-4": {
@@ -41,10 +40,7 @@
         "test-coverage": "vendor/bin/phpunit --bootstrap vendor/autoload.php --coverage-html coverage tests"
     },
     "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
+        "sort-packages": true
     },
     "extra": {
         "laravel": {

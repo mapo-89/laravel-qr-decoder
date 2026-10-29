@@ -189,6 +189,19 @@ composer install
 composer test
 ```
 
+Test the Python decoder with real PNG, JPEG and WebP QR images in a virtual environment:
+
+```bash
+python3 -m venv python/venv
+python/venv/bin/python -m pip install -r python/requirements.txt
+python/venv/bin/python -m unittest discover -s python -p 'test_*.py' -v
+```
+
+On Windows, use `python` to create the environment and
+`python/venv/Scripts/python.exe` for the remaining commands. CI runs these tests
+on Linux and Windows with Python 3.11 and 3.14. PHP tests use PHPUnit 11, 12 or 13
+as supported by the selected PHP and Laravel versions.
+
 The service provider uses [Spatie Laravel Package Tools](https://github.com/spatie/laravel-package-tools)
 to register configuration and the `qr-decoder:install` command. Laravel discovers the
 provider and facade automatically. The integration tests cover configuration merging,
