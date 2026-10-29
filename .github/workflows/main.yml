@@ -71,9 +71,6 @@ jobs:
             matrix:
                 os: [ubuntu-latest, windows-latest]
                 framework:
-                    - laravel: '11.*'
-                      testbench: ^9.0
-                      php: '8.2'
                     - laravel: '12.*'
                       testbench: ^10.0
                       php: '8.2'
@@ -107,22 +104,6 @@ jobs:
               run: |
                   echo "::add-matcher::${{ runner.tool_cache }}/php.json"
                   echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
-            # Laravel 11 is EOL, but remains part of the package's compatibility contract.
-            # Allow only its framework advisories during CI resolution; keep audit reporting
-            # and advisory blocking for all other packages and Laravel versions enabled.
-            - name: Allow Laravel 11 compatibility dependencies
-              if: matrix.framework.laravel == '11.*'
-              shell: php {0}
-              run: |
-                  <?php
-                  $composer = json_decode(file_get_contents('composer.json'), true, 512, JSON_THROW_ON_ERROR);
-                  $composer['config']['policy']['advisories']['ignore']['laravel/framework'] = [
-                      'constraint' => '11.*',
-                      'on-audit' => false,
-                      'reason' => 'CI-only Laravel 11 compatibility test',
-                  ];
-                  file_put_contents('composer.json', json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL);
-
             - name: Install dependencies
               run: |
                   composer require --dev "laravel/framework:${{ matrix.framework.laravel }}" "orchestra/testbench:${{ matrix.framework.testbench }}" --no-interaction --no-update

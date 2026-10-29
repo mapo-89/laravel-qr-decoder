@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/packagist/v/mapo-89/laravel-qr-decoder.svg?label=version&color=03a9f4)](https://packagist.org/packages/mapo-89/laravel-qr-decoder)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/mapo-89/laravel-qr-decoder/blob/main/LICENSE.md)
 [![PHP](https://img.shields.io/packagist/php-v/mapo-89/laravel-qr-decoder.svg?logo=php&logoColor=white)](https://packagist.org/packages/mapo-89/laravel-qr-decoder)
-[![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-FF2D20.svg?logo=laravel&logoColor=white)](https://laravel.com/)
+[![Laravel](https://img.shields.io/badge/Laravel-12%20%7C%2013-FF2D20.svg?logo=laravel&logoColor=white)](https://laravel.com/)
 [![Total Downloads](https://img.shields.io/packagist/dt/mapo-89/laravel-qr-decoder.svg)](https://packagist.org/packages/mapo-89/laravel-qr-decoder)
 [![GitHub Actions](https://github.com/mapo-89/laravel-qr-decoder/actions/workflows/main.yml/badge.svg)](https://github.com/mapo-89/laravel-qr-decoder/actions/workflows/main.yml)
 [![GitHub issues](https://img.shields.io/github/issues/mapo-89/laravel-qr-decoder.svg)](https://github.com/mapo-89/laravel-qr-decoder/issues)
@@ -31,7 +31,7 @@ This package wraps a Python decoder inside a virtual environment and exposes a c
 ## Requirements
 
 * PHP >= 8.2
-* Laravel >= 11
+* Laravel 12 or 13
 * Python >= 3.11
 
 ---
