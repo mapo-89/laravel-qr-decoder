@@ -1,8 +1,16 @@
 # Laravel QR Decoder
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/mapo-89/laravel-qr-decoder.svg?style=flat-square)](https://packagist.org/packages/mapo-89/laravel-qr-decoder)
-[![Total Downloads](https://img.shields.io/packagist/dt/mapo-89/laravel-qr-decoder.svg?style=flat-square)](https://packagist.org/packages/mapo-89/laravel-qr-decoder)
-![GitHub Actions](https://github.com/mapo-89/laravel-qr-decoder/actions/workflows/main.yml/badge.svg)
+[![Version](https://img.shields.io/packagist/v/mapo-89/laravel-qr-decoder.svg?label=version&color=03a9f4)](https://packagist.org/packages/mapo-89/laravel-qr-decoder)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/mapo-89/laravel-qr-decoder/blob/main/LICENSE.md)
+[![PHP](https://img.shields.io/packagist/php-v/mapo-89/laravel-qr-decoder.svg?logo=php&logoColor=white)](https://packagist.org/packages/mapo-89/laravel-qr-decoder)
+[![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-FF2D20.svg?logo=laravel&logoColor=white)](https://laravel.com/)
+[![Total Downloads](https://img.shields.io/packagist/dt/mapo-89/laravel-qr-decoder.svg)](https://packagist.org/packages/mapo-89/laravel-qr-decoder)
+[![GitHub Actions](https://github.com/mapo-89/laravel-qr-decoder/actions/workflows/main.yml/badge.svg)](https://github.com/mapo-89/laravel-qr-decoder/actions/workflows/main.yml)
+[![GitHub issues](https://img.shields.io/github/issues/mapo-89/laravel-qr-decoder.svg)](https://github.com/mapo-89/laravel-qr-decoder/issues)
+[![GitHub stars](https://img.shields.io/github/stars/mapo-89/laravel-qr-decoder.svg?style=flat)](https://github.com/mapo-89/laravel-qr-decoder/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/mapo-89/laravel-qr-decoder.svg)](https://github.com/mapo-89/laravel-qr-decoder/commits/main)
+
+<a href="https://buymeacoffee.com/mapo"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="60"></a>
 
 A cross‑platform Laravel package for decoding QR codes from PNG, JPEG and WebP images using Python (`zxing-cpp`).
 
@@ -53,8 +61,10 @@ composer require mapo-89/laravel-qr-decoder
 ### Publish config
 
 ```bash
-php artisan vendor:publish --tag=config
+php artisan vendor:publish --tag=qr-decoder-config
 ```
+
+The legacy `--tag=config` command remains supported.
 
 ---
 
@@ -172,13 +182,25 @@ laravel-qr-decoder/
 
 ### Testing
 
+Install the development dependencies, then run the decoder and Laravel integration tests:
+
 ```bash
+composer install
 composer test
 ```
+
+The service provider uses [Spatie Laravel Package Tools](https://github.com/spatie/laravel-package-tools)
+to register configuration and the `qr-decoder:install` command. Laravel discovers the
+provider and facade automatically. The integration tests cover configuration merging,
+both config publish tags, command registration, and the shared decoder instance.
 
 ### Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
+
+GitHub release notes are generated from categorized commit messages using the same
+convention as `core-panel-monorepo`. See the [commit and release guide](CONTRIBUTING.md#commit-messages-and-release-notes)
+for the supported prefixes, release triggers, and local preview command.
 
 ## Contributing
 
@@ -197,6 +219,14 @@ If you discover any security related issues, please email info@postler.de instea
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
 
-## Laravel Package Boilerplate
+## Package tooling
 
-This package was generated using the [Laravel Package Boilerplate](https://laravelpackageboilerplate.com).
+Package configuration and command registration are managed by
+[Spatie Laravel Package Tools](https://github.com/spatie/laravel-package-tools).
+
+## Shared release workflow
+
+Commit types, explicit release triggers, and grouped release notes follow the
+[shared release standard](.release/README.md). Ordinary pushes do not publish
+production versions. Existing builds, artifact handling, and deployment approvals
+remain project-specific.
