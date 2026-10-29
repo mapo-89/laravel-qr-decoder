@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-VENV_PATH="${QR_DECODER_PYTHON_PATH:-$SCRIPT_DIR/venv}"
-"$VENV_PATH/bin/python" "$SCRIPT_DIR/decode_qr.py" "$1"
+ROOT="${QR_DECODER_PYTHON_PATH:-$SCRIPT_DIR}"
+ROOT="${ROOT%/}"
+if [[ -f "$ROOT/venv/bin/python" ]]; then
+    VENV_PATH="$ROOT/venv"
+else
+    VENV_PATH="$ROOT"
+fi
+export PYTHONIOENCODING=utf-8
+export PYTHONUTF8=1
+exec "$VENV_PATH/bin/python" "$SCRIPT_DIR/decode_qr.py" "$@"
