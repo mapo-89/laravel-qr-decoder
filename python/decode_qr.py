@@ -3,35 +3,42 @@ import numpy as np
 from PIL import Image, ImageOps
 import zxingcpp
 
+
 def try_decode(pil_img):
-    img = np.array(pil_img.convert("RGB"))
-    barcodes = zxingcpp.read_barcodes(img)
-    if not barcodes:
-        return ""
-    return (barcodes[0].text or "").strip()
+    results = zxingcpp.read_barcodes(
+        np.asarray(pil_img.convert("RGB")), formats=zxingcpp.BarcodeFormat.QRCode
+    )
+    values = {result.text.strip() for result in results if result.text.strip()}
+    if len(values) > 1:
+        raise ValueError("Ambiguous QR image")
+    return next(iter(values), "")
+
 
 def preprocess(pil_img):
-    img = pil_img.convert("L")
-    img = img.resize((img.width * 2, img.height * 2), Image.Resampling.LANCZOS)
-    img = ImageOps.autocontrast(img)
-    img = img.point(lambda p: 255 if p > 140 else 0)
-    return img.convert("RGB")
+    image = pil_img.convert("L")
+    image = image.resize((image.width * 2, image.height * 2), Image.Resampling.LANCZOS)
+    image = ImageOps.autocontrast(image)
+    return image.point(lambda pixel: 255 if pixel > 140 else 0).convert("RGB")
+
 
 def main():
-    if len(sys.argv) < 2:
-        print("")
-        return
+    if len(sys.argv) != 2:
+        return 1
+    try:
+        with Image.open(sys.argv[1]) as source:
+            if source.width * source.height > 16777216:
+                raise ValueError("Image too large")
+            image = ImageOps.exif_transpose(source)
+            image.thumbnail((2048, 2048), Image.Resampling.LANCZOS)
+            result = try_decode(image)
+            if not result:
+                result = try_decode(preprocess(image))
+            print(result)
+        return 0
+    except Exception:
+        print("Unable to decode QR image.", file=sys.stderr)
+        return 1
 
-    path = sys.argv[1]
-    pil = Image.open(path)
-
-    out = try_decode(pil)
-    if out:
-        print(out)
-        return
-
-    out = try_decode(preprocess(pil))
-    print(out)
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

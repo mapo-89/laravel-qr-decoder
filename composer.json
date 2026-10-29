@@ -17,13 +17,13 @@
     ],
     "require": {
         "php": "^8.2",
-        "illuminate/support": "^11.0|^12.0",
-        "symfony/process": "^7.4"
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "symfony/process": "^7.4|^8.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^9.0|^10.0",
-        "phpunit/phpunit": "^9.0|^10.0|^11.0",
-        "pestphp/pest": "^2.0|^3.0"
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^9.0|^10.0|^11.0|^12.0",
+        "pestphp/pest": "^2.0|^3.0|^4.0"
     },
     "autoload": {
         "psr-4": {
@@ -36,9 +36,8 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/phpunit",
-        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
-
+        "test": "vendor/bin/phpunit --bootstrap vendor/autoload.php tests",
+        "test-coverage": "vendor/bin/phpunit --bootstrap vendor/autoload.php --coverage-html coverage tests"
     },
     "config": {
         "sort-packages": true,

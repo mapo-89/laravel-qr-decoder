@@ -4,7 +4,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/mapo-89/laravel-qr-decoder.svg?style=flat-square)](https://packagist.org/packages/mapo-89/laravel-qr-decoder)
 ![GitHub Actions](https://github.com/mapo-89/laravel-qr-decoder/actions/workflows/main.yml/badge.svg)
 
-A cross‑platform Laravel package for decoding QR codes from PNG images using Python (`zxing-cpp`).
+A cross‑platform Laravel package for decoding QR codes from PNG, JPEG and WebP images using Python (`zxing-cpp`).
 
 This package wraps a Python decoder inside a virtual environment and exposes a clean Laravel API. It works on **Windows and Linux** using OS‑specific wrapper scripts.
 
@@ -24,7 +24,7 @@ This package wraps a Python decoder inside a virtual environment and exposes a c
 
 * PHP >= 8.2
 * Laravel >= 11
-* Python >= 3.13
+* Python >= 3.11
 
 ---
 

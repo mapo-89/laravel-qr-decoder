@@ -5,7 +5,7 @@ namespace Mapo89\QrDecoder;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \Mapo89\QrDecoder\Skeleton\SkeletonClass
+ * @see QrDecoder
  */
 class QrDecoderFacade extends Facade
 {

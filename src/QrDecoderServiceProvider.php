@@ -16,9 +16,9 @@ class QrDecoderServiceProvider extends ServiceProvider
          * Optional methods to load your package assets
          */
         // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'qr-decoder');
-        //$this->loadViewsFrom(__DIR__.'/../resources/views', 'qr-decoder');
+        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'qr-decoder');
         // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        //$this->loadRoutesFrom(__DIR__.'/routes.php');
+        // $this->loadRoutesFrom(__DIR__.'/routes.php');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -41,7 +41,7 @@ class QrDecoderServiceProvider extends ServiceProvider
             ], 'lang');*/
 
             // Registering package commands.
-             $this->commands([
+            $this->commands([
                 QrDecoderInstall::class,
             ]);
         }
@@ -56,8 +56,7 @@ class QrDecoderServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/qr-decoder.php', 'qr-decoder');
 
         // Register the main class to use with the facade
-        $this->app->singleton('qr-decoder', function () {
-            return new QrDecoder;
-        });
+        $this->app->singleton(QrDecoder::class);
+        $this->app->alias(QrDecoder::class, 'qr-decoder');
     }
 }
