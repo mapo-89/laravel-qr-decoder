@@ -5,7 +5,7 @@
 Run relevant PHP and Laravel integration tests with `composer test`.
 For Python dependency or decoder changes, install `python/requirements.txt` in a
 virtual environment and run `python -m unittest discover -s python -p 'test_*.py' -v`
-with that environment's interpreter. Preserve Python 3.11 compatibility.
+with that environment's interpreter. Require Python 3.12 or newer; test the minimum supported version and Python 3.14.
 The release workflow additionally requires successful `run-tests` push CI for the
 exact release commit. Composer derives the package version from Git tags; do not
 add a version field to `composer.json`.
@@ -19,9 +19,13 @@ Use `.release/README.md` and `.release/config.json`. The authorized workflow is
 `main → feature/* → release/X.Y.Z → main`, without a develop branch. Squash each
 reviewed feature into the release branch with a categorized English commit.
 Direct categorized commits on release/X.Y.Z are equally allowed and do not need
-to be squashed. Both kinds of work may be mixed; rerun prepare after later changes.
-Prepare version files and the single generated changelog entry there using
-`node .release/branches.mjs prepare`. Merge the prepared release into main only
+to be squashed. Both kinds of work may be mixed. Ordinary work commits do not
+update version metadata or CHANGELOG.md. Once the intended release scope is
+complete, run `node .release/branches.mjs prepare` once to collect its changes.
+If more commits follow preparation, defer the refresh until the release scope is
+complete again, then rerun prepare and checks before merging the release PR.
+Do not run prepare after every commit or merely to leave the branch prepared.
+Merge the prepared release into main only
 through a reviewed pull request, using a merge commit titled `🚀 Release: X.Y.Z`.
 Never merge locally into main, push main directly, use admin bypasses or override
 required checks, including during an authorized release. Tag/publish that SHA after
@@ -45,3 +49,14 @@ independent new capability. Run the affected release-tooling tests and preview
 notes before committing release-tooling changes. Published notes must match the
 prepared changelog at the immutable tag. The changelog publisher verifies this
 without adding another main commit. See `.release/README.md` for commands.
+
+## Dependency update policy
+
+Follow the dependency-update section in `.release/README.md`. Bots open weekly
+update PRs on the default branch; select and retarget reviewed updates to the
+explicitly authorized release branch, rerun CI, and squash through their PRs.
+Never auto-merge dependency PRs or change supported runtime/framework versions
+just to satisfy an update. Compatibility breaks require an explicit major release.
+Collect dependency updates with the other work; prepare once when the release
+scope is complete, refreshing only at finalization if later commits were added.
+No bot commit authorizes a release.

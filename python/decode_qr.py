@@ -50,7 +50,7 @@ def decode(path):
 
 
 def main():
-    # Pipes on Windows otherwise use the active ANSI codepage on Python 3.11–3.14.
+    # Pipes on Windows otherwise use the active ANSI codepage on Python 3.12–3.14.
     sys.stdout.reconfigure(encoding="utf-8")
     json_mode = len(sys.argv) == 3 and sys.argv[1] == "--json"
     if not json_mode and len(sys.argv) != 2:

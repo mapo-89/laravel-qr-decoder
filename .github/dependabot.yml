@@ -1,3 +1,5 @@
+# Dependency PRs are reviewed and retargeted at release preparation.
+# Keep the default target; versioned release branches are deleted after publication.
 version: 2
 
 updates:
@@ -6,6 +8,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    open-pull-requests-limit: 5
     # Preserve existing Laravel/PHP compatibility when adding newer versions.
     versioning-strategy: widen
     commit-message:
@@ -20,6 +23,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    open-pull-requests-limit: 5
     commit-message:
       prefix: "📦 Deps"
     groups:
@@ -32,6 +36,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    open-pull-requests-limit: 5
     commit-message:
       prefix: "📦 Deps"
     groups:

@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-qr-decoder` will be documented in this file
 
+## v3.0.0 - 2026-10-30
+
+### 💥 Breaking Changes
+- Require Python 3.12 and upgrade NumPy to 2.5
+
+### 🔧 Chores
+- Standardize dependency review and release preparation
+
 ## v2.0.1 - 2026-10-30
 
 ### 📝 Documentation

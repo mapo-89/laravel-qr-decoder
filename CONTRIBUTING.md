@@ -111,8 +111,11 @@ See the [Dependabot configuration reference](https://docs.github.com/en/code-sec
 
 Use the [release branch workflow](.release/README.md#release-branches): start
 features from main, squash reviewed feature branches into release/X.Y.Z or
-commit directly there without squashing, prepare
-version metadata and CHANGELOG.md on that branch, then open a PR targeting main.
+commit directly there without squashing. Leave version metadata and CHANGELOG.md
+unchanged during ordinary development. Once the release scope is complete, run
+`node .release/branches.mjs prepare` once and open a PR targeting main. If additional
+commits follow, collect them and refresh preparation and checks at finalization;
+do not regenerate the changelog after every commit.
 Merge only through that reviewed PR, using a merge commit titled `🚀 Release: X.Y.Z`.
 Direct main pushes/local release merges and administrator bypasses are forbidden.
 The tag identifies the tested main merge. After successful publication and

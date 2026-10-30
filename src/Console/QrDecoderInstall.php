@@ -25,7 +25,7 @@ class QrDecoderInstall extends Command
                 $create = $environment->process([(string) config('qr-decoder.python_binary'), '-m', 'venv', $environment->directory()], $timeout);
                 $create->run();
                 if (! $create->isSuccessful()) {
-                    $this->error('Could not create the Python environment. Check Python >= 3.11 and venv support.');
+                    $this->error('Could not create the Python environment. Check Python >= 3.12 and venv support.');
 
                     return self::FAILURE;
                 }
@@ -40,7 +40,7 @@ class QrDecoderInstall extends Command
                 $this->output->write($output);
             });
             if (! $install->isSuccessful()) {
-                $this->error('Could not install QR decoder dependencies. Check Python version, wheel availability and package index access.');
+                $this->error('Could not install QR decoder dependencies. Check Python >= 3.12, wheel availability and package index access.');
 
                 return self::FAILURE;
             }

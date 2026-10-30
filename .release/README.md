@@ -44,8 +44,10 @@ losing work. This tooling change does not create branches, commits or releases.
 Feature branches are optional. You may create ordinary categorized commits
 straight on `release/X.Y.Z`, including multiple implementation or fix commits.
 Those direct commits remain separate; they do not have to be squashed. Mixing
-direct commits with squashed feature branches is supported. Run `prepare` after
-the final change, including any direct fixes added after earlier preparation.
+direct commits with squashed feature branches is supported. Ordinary work commits
+leave version metadata and CHANGELOG.md unchanged. Collect the release scope
+first, then run `prepare` once as a finalization step before the release PR merge.
+Do not run it after every commit or just to keep a working branch prepared.
 The entire release still reaches main through one --no-ff merge commit.
 
 ### Preparing an explicitly requested release
@@ -62,13 +64,18 @@ node .release/branches.mjs start --version 2.0.1
 # Commit direct work here, or integrate a reviewed feature branch based on main:
 git merge --squash feature/example
 git commit -m '✨ Feature: Add example capability'
+# Continue normal work commits without regenerating the changelog.
+# Once all intended changes are integrated and the release is being finalized:
 node .release/branches.mjs prepare
 ```
 
 `prepare` synchronizes the declared project version files and writes CHANGELOG.md
 using the shared release-note categories, then creates a metadata commit on the
-release branch. Run the project-specific checks on that prepared branch. Add late
-fixes there and rerun `prepare`; it refreshes only this untagged version. Existing
+release branch. Run the project-specific checks on that prepared branch. If late
+fixes are needed, commit them normally and collect any further changes first.
+When the release is ready again, rerun `prepare` and checks once before merging;
+do not regenerate metadata after each intermediate fix. This refreshes only the
+untagged version. Existing
 published changelog entries remain immutable. To supply reviewed or translated
 notes, run `prepare --notes-file FILE` with a file outside the repository.
 
@@ -168,3 +175,37 @@ project-specific version metadata explicitly requires otherwise.
 ## Repository adapter
 
 Hosting: **github**. Tag prefix: **v**. Publisher: **existing**.
+
+## Dependency updates
+
+Dependency bots propose changes; they never approve, merge or publish releases.
+Keep weekly Monday updates, group minor/patch changes by ecosystem, and review
+major updates separately. Use `📦 Deps: <imperative English summary>` for squash
+commits; a compatibility-breaking change uses `💥 Breaking:` and a major release.
+Never drop supported PHP, Laravel, Python, Node or Home Assistant versions merely
+to make a dependency update pass. Test the supported minimum and relevant
+platforms; if necessary, keep the compatible dependency or defer the update.
+
+Bots initially target the repository default branch so the target never points
+at a deleted release branch. Do not hard-code `release/X.Y.Z` in bot configuration.
+At release preparation, inspect open bot PRs and explicitly select the intended
+release branch. Retarget each selected PR to that branch, update its head with
+the release baseline when needed, and wait for fresh policy and integration CI.
+Do not pick a release automatically when multiple releases are open. If no release
+is authorized, leave the PR open; do not create a version or release on its behalf.
+Security PRs also require review and testing, but must not be postponed merely
+because the weekly version-update window is closed.
+
+Squash each reviewed dependency PR through its hosted PR into the active release
+branch with a meaningful categorized commit. Direct pushes to main and bot
+auto-merges are not part of this process. Collect dependency PRs with the other
+release work, then run `node .release/branches.mjs prepare` once at finalization.
+If later commits follow, refresh it at the next finalization, not after each PR.
+Merge the release itself through a PR with a merge commit,
+then retain its immutable tag and retire the released branch after successful
+publication. Keep open dependency PRs off branches scheduled for deletion.
+
+GitHub uses `.github/dependabot.yml`. After this configuration reaches the
+repository default branch, enable Dependabot/version updates in repository settings
+if disabled. Private registries need dedicated Dependabot secrets and registry
+configuration; do not copy local Composer/npm or CLI credentials into the repository.

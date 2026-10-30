@@ -32,7 +32,12 @@ This package wraps a Python decoder inside a virtual environment and exposes a c
 
 * PHP >= 8.2
 * Laravel 12 or 13
-* Python >= 3.11
+* Python >= 3.12
+
+Version 3 requires Python 3.12 or newer and uses NumPy 2.5.4.
+When upgrading from version 2, recreate any virtual environment created with
+Python 3.11 using Python 3.12 or newer, then rerun `php artisan qr-decoder:install`.
+Set `QR_DECODER_PYTHON_BINARY` to the newer interpreter before creating the environment.
 
 ---
 
@@ -86,7 +91,7 @@ The environment variables are optional:
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `QR_DECODER_PYTHON_PATH` | `<application>/python/qr-decoder` | Parent directory containing `venv`; an existing virtual environment directory is also accepted. |
-| `QR_DECODER_PYTHON_BINARY` | `python3` on Linux, `python` on Windows | Python >= 3.11 executable used to create the environment. Use an executable path without command-line arguments. |
+| `QR_DECODER_PYTHON_BINARY` | `python3` on Linux, `python` on Windows | Python >= 3.12 executable used to create the environment. Use an executable path without command-line arguments. |
 | `QR_DECODER_TIMEOUT` | `10` | Timeout in seconds for one decode operation. |
 | `QR_DECODER_INSTALL_TIMEOUT` | `300` | Timeout in seconds for each installation step. |
 
@@ -244,9 +249,9 @@ composer test
 
 On Windows, use `python` to create the environment and
 `python/venv/Scripts/python.exe` for the remaining commands. CI runs these tests
-on Linux and Windows with Python 3.11 and 3.14. PHP tests use PHPUnit 11, 12 or 13
+on Linux and Windows with Python 3.12 and 3.14. PHP tests use PHPUnit 11, 12 or 13
 as supported by the selected PHP and Laravel versions. The PHP CI jobs also install
-Python 3.11 and exercise Laravel → Python → QR decoding and both wrapper path
+Python 3.12 and exercise Laravel → Python → QR decoding and both wrapper path
 layouts. Locally, real-image PHP tests skip when no virtual environment is present;
 set `QR_DECODER_TEST_VENV` to an existing environment directory to use a different
 location. A present but broken environment fails the tests.
@@ -320,11 +325,21 @@ remain project-specific.
 
 Feature branches start from main and are squash-merged into release/X.Y.Z.
 Alternatively or additionally, commit directly on release/X.Y.Z; these commits
-remain separate and do not require squashing. Run prepare after the final change.
-Prepare version files and CHANGELOG.md on that branch, then merge it into main
+remain separate and do not require squashing. Ordinary commits do not rewrite
+version metadata or CHANGELOG.md. Once the release scope is complete, run
+`node .release/branches.mjs prepare` once to collect all changes on that branch.
+If more commits follow, refresh preparation and checks together at finalization,
+rather than after each commit. Then merge the prepared release into main
 through a reviewed PR using a merge commit titled `🚀 Release: X.Y.Z`.
 Direct pushes/local merges to main and administrator bypasses are forbidden.
 Publish the tested merge commit, then remove the fully integrated release branch
 after successful publication and verification. Create a new branch per version.
 The prepared changelog supplies the published release notes; no post-release
 changelog commit is created. See [.release/README.md](.release/README.md).
+
+## Automated dependency maintenance
+
+Dependabot proposes weekly dependency updates. Reviewed updates are retargeted to
+the active release branch, tested, and squash-merged through their PRs.
+See [.release/README.md](.release/README.md#dependency-updates) for the policy
+and activation requirements. Dependency PRs never authorize a release.
