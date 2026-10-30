@@ -58,7 +58,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest, windows-latest]
-                python: ['3.11', '3.12', '3.14']
+                python: ['3.12', '3.14']
         permissions:
             contents: read
         steps:
@@ -101,13 +101,6 @@ jobs:
                           php: '8.5'
                       stability: prefer-stable
                       python: '3.12'
-                    - os: ubuntu-latest
-                      framework:
-                          laravel: '13.*'
-                          testbench: ^11.0
-                          php: '8.3'
-                      stability: prefer-stable
-                      python: '3.11'
 
         name: P${{ matrix.framework.php }} - L${{ matrix.framework.laravel }} - Py${{ matrix.python }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
