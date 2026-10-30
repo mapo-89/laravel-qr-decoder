@@ -64,7 +64,7 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v5
             - name: Setup Python
-              uses: actions/setup-python@v6
+              uses: actions/setup-python@v7
               with:
                   python-version: ${{ matrix.python }}
                   cache: pip
@@ -118,7 +118,7 @@ jobs:
                   echo "::add-matcher::${{ runner.tool_cache }}/php.json"
                   echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
             - name: Setup Python for PHP integration tests
-              uses: actions/setup-python@v6
+              uses: actions/setup-python@v7
               with:
                   python-version: '3.11'
                   cache: pip
