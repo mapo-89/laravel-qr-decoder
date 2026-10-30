@@ -4,3 +4,5 @@
 /composer.lock
 /python/venv/
 __pycache__/
+/.phpstan.cache/
+/.ruff_cache/

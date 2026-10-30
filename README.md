@@ -232,6 +232,8 @@ laravel-qr-decoder/
 
 ### Testing
 
+Run `composer qa` for all quality checks; see [CONTRIBUTING](CONTRIBUTING.md#quality-checks) for tool setup.
+
 Install the development dependencies:
 
 ```bash

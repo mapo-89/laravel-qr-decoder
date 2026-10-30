@@ -29,6 +29,7 @@ class PythonEnvironment
         return $this->directory().$this->suffix();
     }
 
+    /** @param list<string> $command */
     public function process(array $command, float $timeout): Process
     {
         $process = new Process($command, null, ['PYTHONIOENCODING' => 'utf-8', 'PYTHONUTF8' => '1']);
