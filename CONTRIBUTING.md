@@ -87,50 +87,34 @@ Merge subjects, generated `⚙️ Chore: set version to ...` messages, and relea
 trigger messages are excluded from the notes. Only nonempty sections are shown,
 in the table's order; changes within a section follow commit order.
 
+## Dependency updates
+
+[Dependabot](.github/dependabot.yml) checks Composer, Python requirements and
+GitHub Actions every Monday. Patch and minor version updates are grouped per
+ecosystem; major version updates are proposed individually. Composer updates
+use `widen` to retain existing supported versions where possible. Review changes
+to PHP, Python and Laravel compatibility explicitly, including wheel availability
+for the supported Python versions and platforms.
+
+Dependabot commits use `📦 Deps:` to pass the existing commit convention checks.
+Merge update pull requests after reviewing the changes and successful CI,
+including the real-image integration tests. Publication follows the explicit
+release process below.
+
+In the GitHub repository's security settings, enable the dependency graph,
+Dependabot alerts and Dependabot security updates. These repository
+settings are separate from `dependabot.yml`. The weekly schedule and update
+groups above apply to version updates; security updates are handled separately.
+See the [Dependabot configuration reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference).
+
 ## Creating a release
 
-Normal feature, fix, and documentation commits do not create releases. Release
-bumps are explicit, just as in Core-Panel; they are not inferred from commit types.
-Use one of these release commit subjects only when a release is intended:
-
-```text
-🚀 Release:
-🚀 Release: patch
-🚀 Release: minor
-🚀 Release: major
-🚀 Release: 1.2.0
-```
-
-A bare `🚀 Release:` means `patch`; explicit versions may optionally start with `v`.
-After that commit is pushed to `main` and the complete `run-tests` workflow passes,
-the Release workflow creates the version tag and GitHub release with grouped notes.
-Alternatively, manually dispatch **Release** on `main`, selecting a bump or explicit
-version. Manual releases also require successful push CI for that exact commit.
-
-Versions use the existing `vX.Y.Z` tag convention. The generator accepts historical
-tags with or without `v`, finds the previous stable version in the released commit's
-history, and analyzes only commits since that tag. Existing tags are never moved;
-retries leave existing releases unchanged. Composer gets the version from Git tags,
-so no generated version commit or `composer.json` version field is needed.
-
-Preview notes locally without publishing anything:
-
-```bash
-node .github/scripts/releases.mjs notes --version v1.2.0
-```
-
-Test the release tooling with:
-
-```bash
-node --test .release/release.test.mjs .release/changelog.test.mjs
-```
-
-### Changelog
-
-After a successful explicit release, the workflow records the same published
-notes in `CHANGELOG.md` and fast-forward-pushes a documentation commit. The shared
-publisher is idempotent and preserves old versions and newer Unreleased notes.
-The release tag continues to identify the original tested code commit. See
-[the shared changelog guide](.release/README.md#changelogmd).
+Use the [release branch workflow](.release/README.md#release-branches): start
+features from main, squash reviewed feature branches into release/X.Y.Z or
+commit directly there without squashing, prepare
+version metadata and CHANGELOG.md on that branch, then merge it into main with
+--no-ff and subject `🚀 Release: X.Y.Z`. The tag identifies the tested main merge.
+Manual publication retries that prepared merge; it cannot choose another version.
+Dependabot PRs must be retargeted to the active release branch before merging.
 
 **Happy coding**!

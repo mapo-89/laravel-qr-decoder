@@ -15,22 +15,25 @@ rules. Keep machine-specific paths and wrapper configuration out of package CI.
 
 ## Shared commit and release policy
 
-Use the repository-local [.release/README.md](.release/README.md) and
-`.release/config.json` as the shared Core-Panel/OneHub release standard. New commits
-use `<emoji> <Type>: <imperative English summary>`. Reserve `✨ Feature:` for an
-independent new capability; use Fix, Chore, Refactoring, Docs, Test or Deps as
-appropriate. Normal commits and pushes never authorize a production release.
-A user-requested release uses `🚀 Release: patch|minor|major|X.Y.Z` (bare means
-patch), or an explicit manual workflow dispatch with `bump`/`version`. Never add
-a release-trigger commit while merely implementing release tooling. Generated
-version commits use `⚙️ Chore: set version to ...`. Preserve historical tags and
-project-specific builds, publication/deployment approvals, languages and assets.
-Preview notes and run `.release/release.test.mjs` before release-tooling changes
-are committed. Do not commit, push or publish unless requested by the user.
+Use `.release/README.md` and `.release/config.json`. The authorized workflow is
+`main → feature/* → release/X.Y.Z → main`, without a develop branch. Squash each
+reviewed feature into the release branch with a categorized English commit.
+Direct categorized commits on release/X.Y.Z are equally allowed and do not need
+to be squashed. Both kinds of work may be mixed; rerun prepare after later changes.
+Prepare version files and the single generated changelog entry there using
+`node .release/branches.mjs prepare`. Merge the prepared release into main with
+`--no-ff` and subject `🚀 Release: X.Y.Z`; tag/publish only that merge SHA after
+the required checks. Retarget dependency PRs to the active release branch.
 
-New CHANGELOG entries use the same published release notes through
-`.release/changelog.mjs`; do not maintain a second manually categorized summary.
-After a successful authorized release, `.release/publish-changelog.mjs` records
-and fast-forward-pushes the changelog documentation commit. Preserve old version
-entries, release tags and any newer Unreleased notes. Never run this publication
-helper merely while implementing or testing release tooling.
+Keep existing tags, history, publisher/build/deployment approvals and user work.
+Never rewrite main to regroup commits from before the transition. Normal changes
+and this workflow implementation do not authorize commits, pushes, releases or
+deployments. A user-requested patch/minor/major release determines the explicit
+version used for the release branch. Manual publication must validate the same
+prepared merge; it cannot generate a version successor on main.
+
+Use `<emoji> <Type>: <imperative English summary>`. Reserve `✨ Feature:` for an
+independent new capability. Run the affected release-tooling tests and preview
+notes before committing release-tooling changes. Published notes must match the
+prepared changelog at the immutable tag. The changelog publisher verifies this
+without adding another main commit. See `.release/README.md` for commands.

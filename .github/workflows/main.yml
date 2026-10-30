@@ -2,9 +2,9 @@ name: run-tests
 
 on:
     push:
-        branches: [main]
+        branches: [main, 'release/**']
     pull_request:
-        branches: [main]
+        branches: [main, 'release/**']
 
 jobs:
     release-tooling:
@@ -21,6 +21,19 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: '24'
+            - name: Require prepared release PRs for main
+              if: github.event_name == 'pull_request'
+              env:
+                BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+                HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+                HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+              shell: bash
+              run: |
+                set -euo pipefail
+                if [ "$BASE_BRANCH" = main ]; then
+                    git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+                fi
+                node .release/branches.mjs check-pr --base "$BASE_BRANCH" --head "$HEAD_BRANCH" --ref "$HEAD_SHA" --base-ref refs/remotes/origin/main
             - name: Check new commit messages
               env:
                   BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -35,7 +48,7 @@ jobs:
                   node .github/scripts/releases.mjs check-commits --base "$BASE_SHA" --ref "$HEAD_SHA"
             - name: Test release tooling
               run: |
-                  node --test .release/release.test.mjs .release/changelog.test.mjs
+                  node --test .release/release.test.mjs .release/changelog.test.mjs .release/branches.test.mjs
 
     python:
         name: Python ${{ matrix.python }} - ${{ matrix.os }}

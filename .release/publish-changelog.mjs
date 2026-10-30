@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { git, isMain, tryGit } from './release.mjs'
+import { config, git, isMain, preparedNotes, tryGit, verifyReleaseMerge, versionTuple } from './release.mjs'
 import { updateChangelog } from './changelog.mjs'
 import { readFileSync } from 'node:fs'
 
@@ -11,6 +11,14 @@ export function publishChangelog(version, notesFile, branch, tag) {
     for (let attempt = 1; attempt <= 3; attempt++) {
         git('fetch', 'origin', `refs/heads/${branch}:refs/remotes/origin/${branch}`, `refs/tags/${tag}:refs/tags/${tag}`)
         git('merge-base', '--is-ancestor', tag, `refs/remotes/origin/${branch}`)
+        if (config().branch_workflow) {
+            if (branch !== config().branch_workflow.main) throw new Error('Published release verification requires main')
+            const number = versionTuple(version).join('.')
+            verifyReleaseMerge(tag, number)
+            const published = readFileSync(notesFile, 'utf8').trim().replace(/^# Release-Notes [^\n]+\n+/, '').trim()
+            if (preparedNotes(tag, number) !== published) throw new Error('Published notes differ from the changelog in the immutable release tag')
+            return
+        }
         git('switch', '--detach', `refs/remotes/origin/${branch}`)
         updateChangelog(version, readFileSync(notesFile, 'utf8'), null, tag)
         git('add', '--', 'CHANGELOG.md')

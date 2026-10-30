@@ -315,3 +315,13 @@ Commit types, explicit release triggers, and grouped release notes follow the
 [shared release standard](.release/README.md). Ordinary pushes do not publish
 production versions. Existing builds, artifact handling, and deployment approvals
 remain project-specific.
+
+## Release branch workflow
+
+Feature branches start from main and are squash-merged into release/X.Y.Z.
+Alternatively or additionally, commit directly on release/X.Y.Z; these commits
+remain separate and do not require squashing. Run prepare after the final change.
+Prepare version files and CHANGELOG.md on that branch, then merge it into main
+with --no-ff and subject `🚀 Release: X.Y.Z`. Publish the tested merge commit.
+The prepared changelog supplies the published release notes; no post-release
+changelog commit is created. See [.release/README.md](.release/README.md).

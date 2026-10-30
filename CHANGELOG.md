@@ -2,6 +2,25 @@
 
 All notable changes to `laravel-qr-decoder` will be documented in this file
 
+## v2.0.0 - 2026-10-30
+
+### 💥 Breaking Changes
+- Drop Laravel 11 support
+
+### 🐛 Fixes
+- Omit release comparison lines and empty changelog sections
+- Preserve QR payloads and decode transparent images
+- Unify Python environment setup and wrapper paths
+
+### 📝 Documentation
+- Explain decoder configuration and error handling
+- Document release branches and direct commits
+
+### 🔧 Chores
+- Exercise real QR decoding on Linux and Windows
+- Configure weekly Dependabot updates
+- Adopt validated release branch automation
+
 ## v1.2.1 - 2026-10-29
 
 ### 🔧 Chores

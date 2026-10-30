@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Record published release notes
+      - name: Verify published release notes
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           RELEASE_BRANCH: main
