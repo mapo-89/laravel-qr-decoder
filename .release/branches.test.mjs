@@ -232,3 +232,19 @@ test('cleanup removes only the published merged release branch and preserves its
     assert.equal(f.git('rev-parse', 'main'), merge)
     assert.ok(cleanupRelease('1.1.0', merge, published, []).includes('removed'))
 })
+
+test('fixtures isolate CI environment from direct planner calls and restore it afterwards', () => {
+    const inherited = process.env.GITHUB_REF
+    let cleanup
+    try {
+        process.env.GITHUB_REF = 'refs/heads/release/9.9.9'
+        fixture({ after(callback) { cleanup = callback } })
+        assert.equal(process.env.GITHUB_REF, undefined)
+        cleanup(); cleanup = null
+        assert.equal(process.env.GITHUB_REF, 'refs/heads/release/9.9.9')
+    } finally {
+        cleanup?.()
+        if (inherited === undefined) delete process.env.GITHUB_REF
+        else process.env.GITHUB_REF = inherited
+    }
+})
