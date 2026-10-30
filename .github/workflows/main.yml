@@ -5,6 +5,7 @@ on:
         branches: [main, 'release/**']
     pull_request:
         branches: [main, 'release/**']
+        types: [opened, synchronize, reopened, edited, ready_for_review]
 
 jobs:
     release-tooling:
@@ -14,11 +15,11 @@ jobs:
             contents: read
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: '24'
             - name: Require prepared release PRs for main
@@ -62,9 +63,9 @@ jobs:
             contents: read
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v7
             - name: Setup Python
-              uses: actions/setup-python@v6
+              uses: actions/setup-python@v7
               with:
                   python-version: ${{ matrix.python }}
                   cache: pip
@@ -103,7 +104,7 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v7
 
             - name: Setup PHP
               uses: shivammathur/setup-php@v2
@@ -118,7 +119,7 @@ jobs:
                   echo "::add-matcher::${{ runner.tool_cache }}/php.json"
                   echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
             - name: Setup Python for PHP integration tests
-              uses: actions/setup-python@v6
+              uses: actions/setup-python@v7
               with:
                   python-version: '3.11'
                   cache: pip
