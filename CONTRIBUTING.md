@@ -87,6 +87,26 @@ Merge subjects, generated `⚙️ Chore: set version to ...` messages, and relea
 trigger messages are excluded from the notes. Only nonempty sections are shown,
 in the table's order; changes within a section follow commit order.
 
+## Dependency updates
+
+[Dependabot](.github/dependabot.yml) checks Composer, Python requirements and
+GitHub Actions every Monday. Patch and minor version updates are grouped per
+ecosystem; major version updates are proposed individually. Composer updates
+use `widen` to retain existing supported versions where possible. Review changes
+to PHP, Python and Laravel compatibility explicitly, including wheel availability
+for the supported Python versions and platforms.
+
+Dependabot commits use `📦 Deps:` to pass the existing commit convention checks.
+Merge update pull requests after reviewing the changes and successful CI,
+including the real-image integration tests. Publication follows the explicit
+release process below.
+
+In the GitHub repository's security settings, enable the dependency graph,
+Dependabot alerts and Dependabot security updates. These repository
+settings are separate from `dependabot.yml`. The weekly schedule and update
+groups above apply to version updates; security updates are handled separately.
+See the [Dependabot configuration reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference).
+
 ## Creating a release
 
 Normal feature, fix, and documentation commits do not create releases. Release
