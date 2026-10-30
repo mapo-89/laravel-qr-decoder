@@ -112,8 +112,11 @@ See the [Dependabot configuration reference](https://docs.github.com/en/code-sec
 Use the [release branch workflow](.release/README.md#release-branches): start
 features from main, squash reviewed feature branches into release/X.Y.Z or
 commit directly there without squashing, prepare
-version metadata and CHANGELOG.md on that branch, then merge it into main with
---no-ff and subject `🚀 Release: X.Y.Z`. The tag identifies the tested main merge.
+version metadata and CHANGELOG.md on that branch, then open a PR targeting main.
+Merge only through that reviewed PR, using a merge commit titled `🚀 Release: X.Y.Z`.
+Direct main pushes/local release merges and administrator bypasses are forbidden.
+The tag identifies the tested main merge. After successful publication and
+verification, delete the integrated release branch; use a fresh branch per version.
 Manual publication retries that prepared merge; it cannot choose another version.
 Dependabot PRs must be retargeted to the active release branch before merging.
 
