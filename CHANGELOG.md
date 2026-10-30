@@ -13,6 +13,7 @@ All notable changes to `laravel-qr-decoder` will be documented in this file
 - Bump actions/setup-node from 4 to 7
 - Bump actions/checkout from 5 to 7
 - Bump actions/setup-python from 6 to 7
+- Allow release cleanup to verify open pull requests
 
 ## v2.0.0 - 2026-10-30
 
