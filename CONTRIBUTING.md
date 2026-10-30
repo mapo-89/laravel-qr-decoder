@@ -71,15 +71,17 @@ set up the development environment with Python >= 3.12:
 
 ```bash
 python3 -m venv python/venv
-. python/venv/bin/activate
-python -m pip install -r python/requirements-dev.txt
+python/venv/bin/python -m pip install -r python/requirements-dev.txt
 composer qa
 ```
 
-On Windows, create the environment with `python -m venv python/venv` and activate
-it with `python/venv/Scripts/Activate.ps1` in PowerShell. Activation puts Python
-and Ruff on PATH for Composer. Runtime installations only need
-`python/requirements.txt`.
+On Windows, create the environment with `python -m venv python/venv`, then install
+the tools with `python/venv/Scripts/python.exe -m pip install -r python/requirements-dev.txt`.
+Composer invokes the environment's interpreter and Ruff directly; activation and
+a global Ruff installation are not required. Set `QR_DECODER_TEST_VENV` to use a
+different virtual environment. Without a local environment, Composer uses Python
+from PATH, as in CI; install the development requirements with that interpreter.
+Runtime installations only need `python/requirements.txt`.
 Use `composer check-python` to check Python and `composer format-python` to apply
 formatting and safe lint fixes. Run real decoder tests alone with
 `composer test-python`; PHP integration tests

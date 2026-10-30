@@ -55,15 +55,15 @@
             "@composer audit"
         ],
         "check-python": [
-            "ruff check python tests/fixtures",
-            "ruff format --check python tests/fixtures"
+            "@php .github/scripts/python.php -m ruff check python tests/fixtures",
+            "@php .github/scripts/python.php -m ruff format --check python tests/fixtures"
         ],
         "format-python": [
-            "ruff check --fix python tests/fixtures",
-            "ruff format python tests/fixtures"
+            "@php .github/scripts/python.php -m ruff check --fix python tests/fixtures",
+            "@php .github/scripts/python.php -m ruff format python tests/fixtures"
         ],
         "check-composer": "@composer validate --strict",
-        "test-python": "python -m unittest discover -s python -p 'test_*.py' -v"
+        "test-python": "@php .github/scripts/python.php -m unittest discover -s python -p 'test_*.py' -v"
     },
     "config": {
         "sort-packages": true
