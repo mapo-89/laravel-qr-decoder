@@ -34,6 +34,9 @@ This package wraps a Python decoder inside a virtual environment and exposes a c
 * Laravel 12 or 13
 * Python >= 3.11
 
+Python 3.11 uses NumPy 2.4.6; Python 3.12 and newer use NumPy 2.5.4.
+The installer selects the compatible pinned version automatically.
+
 ---
 
 ## Installation
@@ -244,9 +247,9 @@ composer test
 
 On Windows, use `python` to create the environment and
 `python/venv/Scripts/python.exe` for the remaining commands. CI runs these tests
-on Linux and Windows with Python 3.11 and 3.14. PHP tests use PHPUnit 11, 12 or 13
+on Linux and Windows with Python 3.11, 3.12 and 3.14. PHP tests use PHPUnit 11, 12 or 13
 as supported by the selected PHP and Laravel versions. The PHP CI jobs also install
-Python 3.11 and exercise Laravel → Python → QR decoding and both wrapper path
+Python 3.12, with an additional Python 3.11 compatibility job, and exercise Laravel → Python → QR decoding and both wrapper path
 layouts. Locally, real-image PHP tests skip when no virtual environment is present;
 set `QR_DECODER_TEST_VENV` to an existing environment directory to use a different
 location. A present but broken environment fails the tests.
