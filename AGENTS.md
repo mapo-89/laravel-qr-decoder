@@ -21,9 +21,17 @@ reviewed feature into the release branch with a categorized English commit.
 Direct categorized commits on release/X.Y.Z are equally allowed and do not need
 to be squashed. Both kinds of work may be mixed; rerun prepare after later changes.
 Prepare version files and the single generated changelog entry there using
-`node .release/branches.mjs prepare`. Merge the prepared release into main with
-`--no-ff` and subject `🚀 Release: X.Y.Z`; tag/publish only that merge SHA after
+`node .release/branches.mjs prepare`. Merge the prepared release into main only
+through a reviewed pull request, using a merge commit titled `🚀 Release: X.Y.Z`.
+Never merge locally into main, push main directly, use admin bypasses or override
+required checks, including during an authorized release. Tag/publish that SHA after
 the required checks. Retarget dependency PRs to the active release branch.
+
+After successful CI, publication and tag/changelog verification, delete the
+versioned release branch remotely and locally when it still points to the merged
+release tip and has no remaining open PRs. Preserve branches with additional work.
+Never reuse a released branch; start the next release/X.Y.Z from updated main.
+The immutable tag and merge parents preserve the released history after deletion.
 
 Keep existing tags, history, publisher/build/deployment approvals and user work.
 Never rewrite main to regroup commits from before the transition. Normal changes

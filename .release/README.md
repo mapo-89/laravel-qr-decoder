@@ -52,12 +52,12 @@ The entire release still reaches main through one --no-ff merge commit.
 
 Work from a clean checkout. Fetch the relevant remotes and fast-forward local
 main before starting; the helpers never fetch, push, publish or discard work.
-The examples use version 1.3.0; choose the version requested by the user.
+The examples use version 2.0.1; choose the version requested by the user.
 
 ```bash
 git switch main
 # Fetch and fast-forward the configured remote main first.
-node .release/branches.mjs start --version 1.3.0
+node .release/branches.mjs start --version 2.0.1
 # Or choose the next version: start --bump patch|minor|major
 # Commit direct work here, or integrate a reviewed feature branch based on main:
 git merge --squash feature/example
@@ -72,21 +72,18 @@ fixes there and rerun `prepare`; it refreshes only this untagged version. Existi
 published changelog entries remain immutable. To supply reviewed or translated
 notes, run `prepare --notes-file FILE` with a file outside the repository.
 
-Push the release branch only when authorized. Open a PR targeting main and use a
-**merge commit**, never squash/rebase, with title `🚀 Release: 1.3.0`. Alternatively,
-after reviewing/testing the prepared branch, use the local helper:
+Push the release branch only when authorized. Open a PR targeting main, wait
+for review and all required checks, and merge it on GitHub using a **merge commit**
+titled `🚀 Release: X.Y.Z`. Squash/rebase release merges are not allowed.
+All changes to main must go through a PR. Never merge a release locally and push
+main directly, and never use administrator bypasses or override required checks.
+The former `branches.mjs merge` command is disabled. Local merge fixtures in the
+release-tooling tests are isolated test repositories, not a publication path.
 
-```bash
-git switch main
-node .release/branches.mjs merge --version 1.3.0
-# Push main and the release branch only when authorized.
-```
-
-The helper refuses a changed main that is not an ancestor of the release branch.
-Merge the updated main into the release branch, resolve conflicts there, prepare
-again and rerun the checks. Never resolve product changes directly on the final
-main merge. Retain the release branch for traceability; delete a feature branch
-only after its squashed change has been verified and deletion is authorized.
+If main advances, integrate it into the release branch, resolve conflicts there,
+prepare again and rerun CI. Require an up-to-date base through branch protection
+so a later main update invalidates stale checks. The release tag identifies the
+successfully tested merge, regardless of whether the source branch still exists.
 Inspect releases with `git log --first-parent main` and individual release work
 with `git log main^1..main^2` at the relevant release merge.
 
@@ -117,6 +114,22 @@ there is no fixed versioned release target in Dependabot configuration.
 Repository branch-protection rules should require the release-policy check and
 allow merge commits; configuring those hosted settings is a separate admin step.
 
+### Cleanup after a successful release
+
+Use a fresh release/X.Y.Z branch for each version; never reuse a released branch.
+After CI, stable publication and changelog verification succeed, the final Release
+workflow step runs `.release/cleanup.mjs`. It verifies the tag's merge SHA and
+remote main ancestry, and deletes the source branch only if its tip is exactly
+the merge's second parent and no open PRs still target the release branch. An
+expected-tip lease prevents deleting work pushed after inspection. Missing remote
+branches are handled idempotently. Branches with extra work are preserved.
+
+The same helper removes a matching, inactive local branch if present. For other
+local checkouts, fetch/prune and delete the integrated branch with `git branch -d`
+after verifying the published tag. Keep the immutable tag and main merge; these
+retain the complete release history. Do not enable immediate head-branch deletion
+on PR merge as a substitute: a merged PR may still fail CI or publication.
+
 ### Version files and build identity
 
 Preparation stores the semantic release version in application version files.
@@ -144,7 +157,7 @@ for compatibility. Preserve historical tags and old version entries.
 
 ```bash
 node --test .release/release.test.mjs .release/changelog.test.mjs .release/branches.test.mjs
-node .release/release.mjs notes --version 1.3.0
+node .release/release.mjs notes --version 2.0.1
 ```
 
 The release engine requires Node.js 24+ and Git; no npm dependencies are needed.

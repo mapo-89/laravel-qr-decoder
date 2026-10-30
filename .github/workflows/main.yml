@@ -5,6 +5,7 @@ on:
         branches: [main, 'release/**']
     pull_request:
         branches: [main, 'release/**']
+        types: [opened, synchronize, reopened, edited, ready_for_review]
 
 jobs:
     release-tooling:
