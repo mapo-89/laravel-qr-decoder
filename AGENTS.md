@@ -5,7 +5,7 @@
 Run relevant PHP and Laravel integration tests with `composer test`.
 For Python dependency or decoder changes, install `python/requirements.txt` in a
 virtual environment and run `python -m unittest discover -s python -p 'test_*.py' -v`
-with that environment's interpreter. Preserve Python 3.11 compatibility.
+with that environment's interpreter. Require Python 3.12 or newer; test the minimum supported version and Python 3.14.
 The release workflow additionally requires successful `run-tests` push CI for the
 exact release commit. Composer derives the package version from Git tags; do not
 add a version field to `composer.json`.

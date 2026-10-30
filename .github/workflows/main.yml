@@ -58,7 +58,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest, windows-latest]
-                python: ['3.11', '3.14']
+                python: ['3.12', '3.14']
         permissions:
             contents: read
         steps:
@@ -92,6 +92,7 @@ jobs:
                       testbench: ^11.0
                       php: '8.3'
                 stability: [prefer-lowest, prefer-stable]
+                python: ['3.12']
                 include:
                     - os: ubuntu-latest
                       framework:
@@ -99,8 +100,9 @@ jobs:
                           testbench: ^11.0
                           php: '8.5'
                       stability: prefer-stable
+                      python: '3.12'
 
-        name: P${{ matrix.framework.php }} - L${{ matrix.framework.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
+        name: P${{ matrix.framework.php }} - L${{ matrix.framework.laravel }} - Py${{ matrix.python }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
         steps:
             - name: Checkout code
@@ -121,7 +123,7 @@ jobs:
             - name: Setup Python for PHP integration tests
               uses: actions/setup-python@v7
               with:
-                  python-version: '3.11'
+                  python-version: ${{ matrix.python }}
                   cache: pip
                   cache-dependency-path: python/requirements.txt
             - name: Install Python integration environment
