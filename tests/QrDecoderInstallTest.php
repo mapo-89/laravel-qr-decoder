@@ -7,6 +7,7 @@ namespace Mapo89\QrDecoder\Tests;
 use Mapo89\QrDecoder\PythonEnvironment;
 use Mapo89\QrDecoder\QrDecoderServiceProvider;
 use Orchestra\Testbench\TestCase;
+use Symfony\Component\Process\Exception\RuntimeException;
 use Symfony\Component\Process\Process;
 
 final class QrDecoderInstallTest extends TestCase
@@ -78,7 +79,7 @@ final class QrDecoderInstallTest extends TestCase
     {
         $environment = $this->createStub(PythonEnvironment::class);
         $environment->method('python')->willReturn(PHP_BINARY);
-        $environment->method('process')->willThrowException(new \Symfony\Component\Process\Exception\RuntimeException('private startup detail'));
+        $environment->method('process')->willThrowException(new RuntimeException('private startup detail'));
         $this->app->instance(PythonEnvironment::class, $environment);
         $this->artisan('qr-decoder:install')->expectsOutputToContain('Check the configured Python path, executable and permissions.')->assertExitCode(1);
     }

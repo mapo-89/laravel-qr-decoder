@@ -11,9 +11,7 @@ use Symfony\Component\Process\Exception\RuntimeException as ProcessException;
 
 class QrDecoder
 {
-    public function __construct(private PythonEnvironment $environment = new PythonEnvironment)
-    {
-    }
+    public function __construct(private PythonEnvironment $environment = new PythonEnvironment) {}
 
     public function decode(string $imagePath): string
     {

@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
 import zxingcpp
+from PIL import Image
 
 
 class DecodeQrTest(unittest.TestCase):
@@ -27,7 +27,8 @@ class DecodeQrTest(unittest.TestCase):
     def decode(self, json_mode=False, env=None):
         return subprocess.run(
             [sys.executable, str(Path(__file__).with_name("decode_qr.py"))]
-            + (["--json"] if json_mode else []) + [str(self.path)],
+            + (["--json"] if json_mode else [])
+            + [str(self.path)],
             capture_output=True,
             text=True,
             timeout=15,
@@ -82,7 +83,11 @@ class DecodeQrTest(unittest.TestCase):
     def test_rejects_distinct_payloads_that_only_differ_in_whitespace(self):
         first = self.qr_image("token")
         second = self.qr_image(" token ")
-        image = Image.new("RGB", (first.width + second.width + 40, max(first.height, second.height)), "white")
+        image = Image.new(
+            "RGB",
+            (first.width + second.width + 40, max(first.height, second.height)),
+            "white",
+        )
         image.paste(first, (0, 0))
         image.paste(second, (first.width + 40, 0))
         image.save(self.path, format="PNG")
@@ -102,10 +107,22 @@ class DecodeQrTest(unittest.TestCase):
         # A header is sufficient: no large pixel allocation is needed for this check.
         import struct
         import zlib
+
         def chunk(kind, data):
-            return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
+            return (
+                struct.pack(">I", len(data))
+                + kind
+                + data
+                + struct.pack(">I", zlib.crc32(kind + data))
+            )
+
         header = struct.pack(">IIBBBBB", 4097, 4096, 8, 2, 0, 0, 0)
-        self.path.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", b"") + chunk(b"IEND", b""))
+        self.path.write_bytes(
+            b"\x89PNG\r\n\x1a\n"
+            + chunk(b"IHDR", header)
+            + chunk(b"IDAT", b"")
+            + chunk(b"IEND", b"")
+        )
         result = self.decode(json_mode=True)
         self.assertEqual(result.returncode, 1)
         self.assertEqual(json.loads(result.stdout), {"error": "image_too_large"})
@@ -136,7 +153,11 @@ class DecodeQrTest(unittest.TestCase):
     def test_rejects_images_with_different_qr_codes(self):
         first = self.qr_image(self.payload)
         second = self.qr_image("a-different-payload")
-        image = Image.new("RGB", (first.width + second.width + 40, max(first.height, second.height)), "white")
+        image = Image.new(
+            "RGB",
+            (first.width + second.width + 40, max(first.height, second.height)),
+            "white",
+        )
         image.paste(first, (0, 0))
         image.paste(second, (first.width + 40, 0))
         image.save(self.path, format="PNG")

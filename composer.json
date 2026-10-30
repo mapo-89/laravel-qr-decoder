@@ -22,6 +22,8 @@
         "symfony/process": "^7.4|^8.0"
     },
     "require-dev": {
+        "larastan/larastan": "^3.10",
+        "laravel/pint": "^1.27",
         "orchestra/testbench": "^10.0|^11.0",
         "phpunit/phpunit": "^11.0|^12.0|^13.0"
     },
@@ -37,7 +39,31 @@
     },
     "scripts": {
         "test": "vendor/bin/phpunit --bootstrap vendor/autoload.php tests",
-        "test-coverage": "vendor/bin/phpunit --bootstrap vendor/autoload.php --coverage-html coverage tests"
+        "test-coverage": "vendor/bin/phpunit --bootstrap vendor/autoload.php --coverage-html coverage tests",
+        "check-style": "pint --test",
+        "format": "pint",
+        "analyse": "phpstan analyse --memory-limit=768M",
+        "check-autoload": "@composer dump-autoload --optimize --strict-psr --no-scripts",
+        "qa": [
+            "@check-composer",
+            "@check-autoload",
+            "@check-style",
+            "@analyse",
+            "@test",
+            "@check-python",
+            "@test-python",
+            "@composer audit"
+        ],
+        "check-python": [
+            "ruff check python tests/fixtures",
+            "ruff format --check python tests/fixtures"
+        ],
+        "format-python": [
+            "ruff check --fix python tests/fixtures",
+            "ruff format python tests/fixtures"
+        ],
+        "check-composer": "@composer validate --strict",
+        "test-python": "python -m unittest discover -s python -p 'test_*.py' -v"
     },
     "config": {
         "sort-packages": true

@@ -2,8 +2,8 @@ import json
 import sys
 
 import numpy as np
-from PIL import Image, ImageOps, UnidentifiedImageError
 import zxingcpp
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 
 class DecodeError(Exception):
