@@ -26,86 +26,132 @@ bullets. Release notes omit the "Changes since ..." / "Änderungen seit ..." lin
 German repositories use translated headings. Summaries are not rewritten
 or automatically translated.
 
-## Explicit releases
+## Release branches
 
-Normal pushes collect changes and do not publish production versions. Release
-only after an explicit user request, with one of these commit subjects on the
-release branch, or by manually dispatching the existing release workflow:
+The release flow is `main → feature/* → release/X.Y.Z → main`. Start feature and
+fix branches from the current `main`. Squash each completed feature into the
+release branch using an ordinary categorized commit. Keep unrelated unfinished
+features outside that branch. Merge the entire release into `main` with a real
+`--no-ff` merge commit named `🚀 Release: X.Y.Z`. Do not squash or fast-forward a
+release into main. The immutable release tag identifies that merge commit.
 
-```text
-🚀 Release:
-🚀 Release: patch
-🚀 Release: minor
-🚀 Release: major
-🚀 Release: 1.2.3
-```
+Existing release tags and published history stay unchanged. Changes already on
+main before adoption remain there; only future release work uses this structure.
+Do not reset or rewrite main to retroactively group old commits. Existing dev,
+staging, feature and hotfix branches must be reconciled explicitly without
+losing work. This tooling change does not create branches, commits or releases.
 
-A bare release marker means patch. Workflow inputs are consistently `bump`
-(`patch`, `minor`, `major`) and optional `version` (overrides bump). The size of the
-bump is explicit, not inferred from feature commits. `[skip release]` postpones
-publication; the affected change still appears in the next release notes.
-Generated version commits use `⚙️ Chore: set version to ...` and never trigger
-another release. Existing tags/releases are immutable; no force-push or historical
-baseline repair is part of the standard workflow.
+Feature branches are optional. You may create ordinary categorized commits
+straight on `release/X.Y.Z`, including multiple implementation or fix commits.
+Those direct commits remain separate; they do not have to be squashed. Mixing
+direct commits with squashed feature branches is supported. Run `prepare` after
+the final change, including any direct fixes added after earlier preparation.
+The entire release still reaches main through one --no-ff merge commit.
 
-`.release/config.json` preserves the hosting service, existing tag prefix, language,
-legacy tag exclusions, and project version metadata. Existing artifact builds,
-staging pipelines, deployments, package splits, and ZIP safety checks remain
-project-specific. A release is not permission to deploy or restart an installation.
-Projects with an established manual publisher retain it; use its documented
-procedure with the shared planner and notes generator.
+### Preparing an explicitly requested release
+
+Work from a clean checkout. Fetch the relevant remotes and fast-forward local
+main before starting; the helpers never fetch, push, publish or discard work.
+The examples use version 1.3.0; choose the version requested by the user.
 
 ```bash
-# Read-only planning and notes preview (does not create tags or releases):
-node .release/release.mjs plan --event manual --bump patch
-node .release/release.mjs notes --version 1.2.3
-# Focused release tests:
-node --test .release/release.test.mjs
+git switch main
+# Fetch and fast-forward the configured remote main first.
+node .release/branches.mjs start --version 1.3.0
+# Or choose the next version: start --bump patch|minor|major
+# Commit direct work here, or integrate a reviewed feature branch based on main:
+git merge --squash feature/example
+git commit -m '✨ Feature: Add example capability'
+node .release/branches.mjs prepare
 ```
 
-The shared engine requires Node.js 24+ and Git and uses only built-in Node.js modules. No npm installation is needed for release tooling.
-Use a full Git checkout including tags. It selects the previous stable ancestor
-version, supports historical tags both with and without `v`, and does not use
-unrelated or newer tags as the release base. Without a tag, configured baseline
-versions are respected; otherwise the initial stable release is 1.0.0.
+`prepare` synchronizes the declared project version files and writes CHANGELOG.md
+using the shared release-note categories, then creates a metadata commit on the
+release branch. Run the project-specific checks on that prepared branch. Add late
+fixes there and rerun `prepare`; it refreshes only this untagged version. Existing
+published changelog entries remain immutable. To supply reviewed or translated
+notes, run `prepare --notes-file FILE` with a file outside the repository.
 
-Commit/push/release authorization is separate from implementing or documenting
-these workflows. Preserve existing user changes and run the repository's required
-checks before committing or publishing.
+Push the release branch only when authorized. Open a PR targeting main and use a
+**merge commit**, never squash/rebase, with title `🚀 Release: 1.3.0`. Alternatively,
+after reviewing/testing the prepared branch, use the local helper:
 
+```bash
+git switch main
+node .release/branches.mjs merge --version 1.3.0
+# Push main and the release branch only when authorized.
+```
+
+The helper refuses a changed main that is not an ancestor of the release branch.
+Merge the updated main into the release branch, resolve conflicts there, prepare
+again and rerun the checks. Never resolve product changes directly on the final
+main merge. Retain the release branch for traceability; delete a feature branch
+only after its squashed change has been verified and deletion is authorized.
+Inspect releases with `git log --first-parent main` and individual release work
+with `git log main^1..main^2` at the relevant release merge.
+
+### Publication and CI
+
+Publication remains project-specific: GitHub/Gitea, container builds, package
+splits, ZIP assets, environment approvals and manual publishers keep their
+existing responsibilities. Version and changelog commits happen before the
+main merge. Publishers must use the exact merge SHA and never add a version
+commit on main after testing it. Normal commits/pushes do not authorize a release.
+Legacy bare/patch/minor/major release requests choose the next explicit version
+when preparing a release branch; they no longer publish a direct marker commit.
+
+Manual workflow dispatch publishes/retries the prepared release merge already on
+main; an exact input version must match it. A manual dispatch cannot bypass the
+release-merge checks or synthesize another release. For the QR package, successful
+`run-tests` push CI remains required for the exact merge commit.
+
+PRs targeting main must come from a prepared `release/X.Y.Z` branch.
+The policy job fetches the current remote main tip and passes it explicitly to
+`check-pr --base-ref`; it does not rely on a potentially stale local main branch.
+If that fetched tip is missing from the release branch, CI fails before merging.
+Require an up-to-date PR base in hosted branch protection to cover main advancing
+after a policy check has finished. Feature and
+Dependabot PRs belong on the active release branch and are squash-merged there.
+Retarget automatically opened dependency PRs from main before merging them;
+there is no fixed versioned release target in Dependabot configuration.
+Repository branch-protection rules should require the release-policy check and
+allow merge commits; configuring those hosted settings is a separate admin step.
+
+### Version files and build identity
+
+Preparation stores the semantic release version in application version files.
+Existing display/image fields contain that version without a source SHA; commit
+and commit-date fields are empty. This avoids claiming a pre-merge commit as the
+identity of the later release merge. Package/ZIP releases keep this stable
+version-only metadata in Git.
+
+The OneHub and Finly container jobs check out the exact release merge and run
+`.release/build-metadata.mjs --version X.Y.Z --ref MERGE_SHA` before Docker builds.
+This fills display/image version, commit and date in the disposable build
+checkout using that merge. The image tag and the embedded metadata therefore
+agree. It creates no commit or tag and never changes the release source tree.
+The helper rejects another version, a non-release commit or a different checkout.
+
+### Changelog verification
+
+The release notes are the prepared changelog entry from the immutable release
+commit. `.release/publish-changelog.mjs` verifies that published notes match it;
+it never appends a post-release documentation commit in the new workflow.
+Legacy repositories without `branch_workflow` retain the old publisher behavior
+for compatibility. Preserve historical tags and old version entries.
+
+### Checks
+
+```bash
+node --test .release/release.test.mjs .release/changelog.test.mjs .release/branches.test.mjs
+node .release/release.mjs notes --version 1.3.0
+```
+
+The release engine requires Node.js 24+ and Git; no npm dependencies are needed.
+Read-only note generation and planning never create a tag or publish a release.
+Composer libraries derive package versions from tags unless their existing
+project-specific version metadata explicitly requires otherwise.
 
 ## Repository adapter
 
 Hosting: **github**. Tag prefix: **v**. Publisher: **existing**.
-
-## CHANGELOG.md
-
-After a successful explicit release, the publisher records the same published
-release notes in `CHANGELOG.md` and pushes `📝 Docs: Update CHANGELOG for <tag>`
-to the release branch. This documentation commit is excluded from future notes
-and does not trigger another release. The file is created on the first release
-when absent; historical version entries and immutable tags are preserved.
-
-`.release/changelog.mjs` updates only the local file. New files have no Unreleased
-or Unveröffentlicht heading. Empty legacy headings are removed; a nonempty legacy
-section is removed only when it still matches the snapshot in the release tag.
-Any newer notes are retained. Legacy "Changes since ..." / "Änderungen seit ..."
-lines are omitted when importing release notes. `.release/publish-changelog.mjs`
-fetches the latest branch and retries rejected pushes by recomputing the update, without
-force pushes or duplicate version entries.
-
-The release workflow calls the publisher directly so GitHub service-token event
-suppression cannot prevent the update. Separate GitHub/Gitea release-event
-workflows cover manually published releases; both paths are idempotent. Existing
-manual/ZIP publishers keep their artifact checks and use the release-event path.
-
-```bash
-# Local preparation only, without commit, tag, push or publication:
-node .release/changelog.mjs --version X.Y.Z --notes-file /path/to/notes.md --release-ref HEAD
-node --test .release/changelog.test.mjs
-```
-
-Automation must be present on the release branch and repository Actions must be
-enabled for the update to run. Branch protections are respected, not bypassed.
-A repository requiring pull requests or denying bot pushes reports an error;
-these settings are not changed by this implementation.

@@ -109,48 +109,12 @@ See the [Dependabot configuration reference](https://docs.github.com/en/code-sec
 
 ## Creating a release
 
-Normal feature, fix, and documentation commits do not create releases. Release
-bumps are explicit, just as in Core-Panel; they are not inferred from commit types.
-Use one of these release commit subjects only when a release is intended:
-
-```text
-🚀 Release:
-🚀 Release: patch
-🚀 Release: minor
-🚀 Release: major
-🚀 Release: 1.2.0
-```
-
-A bare `🚀 Release:` means `patch`; explicit versions may optionally start with `v`.
-After that commit is pushed to `main` and the complete `run-tests` workflow passes,
-the Release workflow creates the version tag and GitHub release with grouped notes.
-Alternatively, manually dispatch **Release** on `main`, selecting a bump or explicit
-version. Manual releases also require successful push CI for that exact commit.
-
-Versions use the existing `vX.Y.Z` tag convention. The generator accepts historical
-tags with or without `v`, finds the previous stable version in the released commit's
-history, and analyzes only commits since that tag. Existing tags are never moved;
-retries leave existing releases unchanged. Composer gets the version from Git tags,
-so no generated version commit or `composer.json` version field is needed.
-
-Preview notes locally without publishing anything:
-
-```bash
-node .github/scripts/releases.mjs notes --version v1.2.0
-```
-
-Test the release tooling with:
-
-```bash
-node --test .release/release.test.mjs .release/changelog.test.mjs
-```
-
-### Changelog
-
-After a successful explicit release, the workflow records the same published
-notes in `CHANGELOG.md` and fast-forward-pushes a documentation commit. The shared
-publisher is idempotent and preserves old versions and newer Unreleased notes.
-The release tag continues to identify the original tested code commit. See
-[the shared changelog guide](.release/README.md#changelogmd).
+Use the [release branch workflow](.release/README.md#release-branches): start
+features from main, squash reviewed feature branches into release/X.Y.Z or
+commit directly there without squashing, prepare
+version metadata and CHANGELOG.md on that branch, then merge it into main with
+--no-ff and subject `🚀 Release: X.Y.Z`. The tag identifies the tested main merge.
+Manual publication retries that prepared merge; it cannot choose another version.
+Dependabot PRs must be retargeted to the active release branch before merging.
 
 **Happy coding**!
