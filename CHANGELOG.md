@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-qr-decoder` will be documented in this file
 
+## v2.0.1 - 2026-10-30
+
+### 📝 Documentation
+- Define PR-only releases and branch retirement
+
+### 🔧 Chores
+- Require release PRs and safely clean published branches
+- Isolate release fixtures from runner environment
+- Bump actions/setup-node from 4 to 7
+- Bump actions/checkout from 5 to 7
+- Bump actions/setup-python from 6 to 7
+
 ## v2.0.0 - 2026-10-30
 
 ### 💥 Breaking Changes
