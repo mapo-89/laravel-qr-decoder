@@ -322,6 +322,9 @@ Feature branches start from main and are squash-merged into release/X.Y.Z.
 Alternatively or additionally, commit directly on release/X.Y.Z; these commits
 remain separate and do not require squashing. Run prepare after the final change.
 Prepare version files and CHANGELOG.md on that branch, then merge it into main
-with --no-ff and subject `🚀 Release: X.Y.Z`. Publish the tested merge commit.
+through a reviewed PR using a merge commit titled `🚀 Release: X.Y.Z`.
+Direct pushes/local merges to main and administrator bypasses are forbidden.
+Publish the tested merge commit, then remove the fully integrated release branch
+after successful publication and verification. Create a new branch per version.
 The prepared changelog supplies the published release notes; no post-release
 changelog commit is created. See [.release/README.md](.release/README.md).

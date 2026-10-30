@@ -106,3 +106,17 @@ jobs:
                 gh release view "$RELEASE_TAG" --json body --jq .body > "$RUNNER_TEMP/changelog-notes.md"
                 gh auth setup-git
                 node .release/publish-changelog.mjs "$RELEASE_VERSION" "$RUNNER_TEMP/changelog-notes.md" "$RELEASE_BRANCH" "$RELEASE_TAG"
+
+            - name: Remove successfully published release branch
+              if: steps.plan.outputs.should_release == 'true'
+              env:
+                GH_TOKEN: ${{ github.token }}
+                RELEASE_VERSION: ${{ steps.plan.outputs.version }}
+                RELEASE_TAG: ${{ steps.plan.outputs.tag }}
+                RELEASE_SHA: ${{ steps.plan.outputs.sha }}
+              run: |
+                set -euo pipefail
+                gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > "$RUNNER_TEMP/published-release.json"
+                gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&base=release/$RELEASE_VERSION&per_page=1" > "$RUNNER_TEMP/open-release-prs.json"
+                node .release/cleanup.mjs --version "$RELEASE_VERSION" --sha "$RELEASE_SHA" \
+                  --release-file "$RUNNER_TEMP/published-release.json" --open-prs-file "$RUNNER_TEMP/open-release-prs.json"
