@@ -54,11 +54,13 @@ If the project maintainer has any additional requirements, you will find them li
 
 ## Quality checks
 
-Install development dependencies with `composer install`, then run `composer qa`
+Use PHP >= 8.3 for development quality tools (Pint requires it). Install development
+dependencies with `composer install`, then run `composer qa`
 before submitting a pull request. It validates Composer metadata and PSR-4
 loading, checks Pint formatting, runs PHPStan with Larastan at level 6 over `src/`,
 runs the PHP tests, and audits installed dependencies for security advisories.
 Static analysis targets PHP 8.2; CI also tests the supported PHP/Laravel versions.
+PHP 8.2 remains supported at runtime and is integration-tested without Pint.
 Fix findings in code or precise type annotations rather than adding a baseline.
 
 Run individual checks with `composer check-style`, `composer analyse`,

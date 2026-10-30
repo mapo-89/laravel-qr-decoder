@@ -19,7 +19,7 @@ jobs:
         - name: Setup PHP
           uses: shivammathur/setup-php@v2
           with:
-            php-version: '8.2'
+            php-version: '8.3'
             tools: composer:v2
             extensions: curl, mbstring, dom, fileinfo, pdo_sqlite, bcmath
             coverage: none
@@ -169,6 +169,9 @@ jobs:
               run: |
                   python -m venv python/venv
                   python -c "import os, subprocess; p = 'python/venv/' + ('Scripts/python.exe' if os.name == 'nt' else 'bin/python'); subprocess.check_call([p, '-m', 'pip', 'install', '--only-binary=:all:', '-r', 'python/requirements.txt'])"
+            - name: Omit formatter from PHP 8.2 integration dependencies
+              if: matrix.framework.php == '8.2'
+              run: composer remove --dev laravel/pint --no-interaction --no-update --no-scripts
             - name: Install dependencies
               run: |
                   composer require --dev "laravel/framework:${{ matrix.framework.laravel }}" "orchestra/testbench:${{ matrix.framework.testbench }}" --no-interaction --no-update
