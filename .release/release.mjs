@@ -61,14 +61,21 @@ export function renderNotes(version, subjects, previous = null, options = {}) {
     return lines.join('\n') + '\n'
 }
 
-export function releaseNotes(version, ref = 'HEAD', subjects = null, revision = null) {
+export function releaseNotes(version, ref = 'HEAD', subjects = null, revision = null, usePrepared = true) {
+    if (config().branch_workflow && usePrepared && subjects === null) {
+        const subject = git('log', '-1', '--format=%s', ref)
+        const number = versionTuple(version).join('.')
+        if (subject === `⚙️ Chore: set version to ${number}` || subject === `🚀 Release: ${number}`) {
+            return `# Release-Notes ${version}\n\n${preparedNotes(ref, number)}\n`
+        }
+    }
     const target = versionTuple(version)
     const previous = stableTags(ref).find(([number]) => compareVersions(number, target) < 0)?.[1] ?? null
     const range = revision || (previous ? `${previous}..${ref}` : ref)
     return renderNotes(version, subjects ?? git('log', '--reverse', '--format=%s', range).split('\n'), previous)
 }
 
-export function planRelease(event, bump = 'patch', version = '', ref = 'HEAD') {
+export function planRelease(event, bump = 'patch', version = '', ref = 'HEAD', validateMerge = true) {
     const skipped = { should_release: 'false', should_skip: 'true', skip: 'true' }
     if (event === 'push') {
         if (git('log', '-1', '--format=%B', ref).includes('[skip release]')) return skipped
@@ -77,6 +84,16 @@ export function planRelease(event, bump = 'patch', version = '', ref = 'HEAD') {
         const requested = marker[1] || 'patch'
         if (['major', 'minor', 'patch'].includes(requested)) { bump = requested; version = '' }
         else version = requested
+    }
+    if (config().branch_workflow && validateMerge) {
+        const marker = git('log', '-1', '--format=%s', ref).match(releaseMarker)
+        if (!marker || !marker[1] || ['major', 'minor', 'patch'].includes(marker[1])) throw new Error('Publish an exact-version release merge; prepare a release/X.Y.Z branch first.')
+        const mergedVersion = versionTuple(marker[1]).join('.')
+        if (version && versionTuple(version).join('.') !== mergedVersion) throw new Error('The requested version differs from the release merge')
+        version = mergedVersion
+        verifyReleaseMerge(ref, version)
+        const target = process.env.GITHUB_REF
+        if (target && target !== 'refs/heads/' + config().branch_workflow.main) throw new Error('Publish releases only from main')
     }
     if (!['major', 'minor', 'patch'].includes(bump)) throw new Error('Select patch, minor, or major explicitly; automatic bumps are not supported.')
     const tags = stableTags(ref)
@@ -114,6 +131,53 @@ export function planRelease(event, bump = 'patch', version = '', ref = 'HEAD') {
         commit_date: date, display_version: `${normalized} (${short})`, image_version: `${normalized}-${short}` }
 }
 
+export function preparedNotes(ref, version) {
+    const number = versionTuple(version).join('.')
+    const document = git('show', `${ref}:CHANGELOG.md`)
+    const headers = [...document.matchAll(/^##[ \t]+\[?(v?[0-9]+\.[0-9]+\.[0-9]+)\]?(?=[ \t]|$)[^\n]*(?:\n|$)/gm)]
+    const index = headers.findIndex(header => versionTuple(header[1]).join('.') === number)
+    if (index < 0) throw new Error('The release changelog must be prepared before merging')
+    return document.slice(headers[index].index + headers[index][0].length, headers[index + 1]?.index ?? document.length).trim()
+}
+
+export function verifyPreparedRelease(ref, version) {
+    const number = versionTuple(version).join('.')
+    const branch = config().branch_workflow.release_prefix + number
+    if (git('log', '-1', '--format=%s', ref) !== `⚙️ Chore: set version to ${number}` || !git('log', '-1', '--format=%B', ref).split('\n').includes(`Release-Branch: ${branch}`)) throw new Error('Prepare the release branch after its last change')
+    if (!preparedNotes(ref, number)) throw new Error('The prepared changelog must not be empty')
+    for (const entry of config().version_files ?? []) {
+        const data = JSON.parse(git('show', `${ref}:${entry.path}`))
+        for (const key of entry.keys) {
+            let value = data
+            for (const segment of key.split('.')) value = value?.[segment]
+            if (value !== number) throw new Error(`Prepare version ${number} in ${entry.path}`)
+        }
+        if (entry.keys.includes('release_version')) {
+            for (const [key, value] of Object.entries(preparedVersionMetadata(number))) {
+                if (Object.hasOwn(data, key) && data[key] !== value) throw new Error(`Remove pre-merge build identity from ${entry.path}`)
+            }
+        }
+    }
+    for (const entry of config().version_text_files ?? []) {
+        const text = git('show', `${ref}:${entry.path}`)
+        const matches = [...text.matchAll(new RegExp(entry.pattern, 'gm'))]
+        if (matches.length !== 1 || matches[0][0] !== matches[0][1] + number + matches[0][2]) throw new Error(`Prepare version ${number} in ${entry.path}`)
+    }
+}
+
+export function verifyReleaseMerge(ref, version) {
+    const parents = git('rev-list', '--parents', '-n', '1', ref).split(/\s+/).slice(1)
+    if (parents.length !== 2) throw new Error('Releases require a --no-ff merge commit on main')
+    git('merge-base', '--is-ancestor', parents[0], parents[1])
+    git('diff', '--exit-code', '--quiet', ref, parents[1])
+    verifyPreparedRelease(parents[1], version)
+}
+
+export function preparedVersionMetadata(version) {
+    const number = versionTuple(version).join('.')
+    return { display_version: number, image_version: number, commit: '', commit_date: '' }
+}
+
 export function syncVersion(version) {
     const normalized = versionTuple(version).join('.')
     for (const entry of config().version_files ?? []) {
@@ -127,11 +191,18 @@ export function syncVersion(version) {
         }
         if (entry.keys.includes('release_version')) {
             const sha = git('rev-parse', '--short', 'HEAD')
-            const fields = { display_version: `${normalized} (${sha})`, image_version: `${normalized}-${sha}`, commit: sha,
+            const fields = config().branch_workflow ? preparedVersionMetadata(normalized) : { display_version: `${normalized} (${sha})`, image_version: `${normalized}-${sha}`, commit: sha,
                 commit_date: git('log', '-1', '--date=iso-strict', '--format=%cI') }
             for (const [key, value] of Object.entries(fields)) if (Object.hasOwn(data, key)) data[key] = value
         }
         writeFileSync(entry.path, JSON.stringify(data, null, original.match(/\n( +)"/)?.[1].length ?? 4) + '\n')
+    }
+    for (const entry of config().version_text_files ?? []) {
+        const original = readFileSync(entry.path, 'utf8')
+        const pattern = new RegExp(entry.pattern, 'gm')
+        const matches = [...original.matchAll(pattern)]
+        if (matches.length !== 1 || matches[0].length !== 3) throw new Error(`Expected one version declaration in ${entry.path}`)
+        writeFileSync(entry.path, original.replace(pattern, (_match, before, after) => before + normalized + after))
     }
 }
 

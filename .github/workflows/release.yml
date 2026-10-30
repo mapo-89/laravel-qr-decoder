@@ -94,7 +94,7 @@ jobs:
                   fi
                   gh release create "$RELEASE_TAG" --target "$RELEASE_SHA" \
                       --title "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-notes.md"
-            - name: Update release changelog
+            - name: Verify prepared release changelog
               if: steps.plan.outputs.should_release == 'true'
               env:
                 GH_TOKEN: ${{ github.token }}

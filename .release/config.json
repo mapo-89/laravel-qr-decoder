@@ -8,5 +8,9 @@
     "version_commit": false,
     "release_branches": [
         "main"
-    ]
+    ],
+    "branch_workflow": {
+        "main": "main",
+        "release_prefix": "release/"
+    }
 }
